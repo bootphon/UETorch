@@ -58,6 +58,30 @@ public:
   UFUNCTION(BlueprintCallable, Category = "Script|Functions")
   virtual bool CallTorchFunctionArray(FString FunctionName, TArray<FString> In, FString &Out);
 
+  /**
+  * Gets a command line argument given its name (string -> string)
+  * @param Arg Argument's name
+  * @param Val Argument's value
+  */
+  UFUNCTION(BlueprintCallable, Category = "Script|Functions")
+  virtual bool GetCommandLineString(FString Arg, FString &Val);
+
+  /**
+  * Gets a command line argument given its name (string -> float)
+  * @param Arg Argument's name
+  * @param Val Argument's value
+  */
+  UFUNCTION(BlueprintCallable, Category = "Script|Functions")
+  virtual bool GetCommandLineFloat(FString Arg, float &Val);
+
+  /**
+  * Gets a command line argument given its name (string -> int)
+  * @param Arg Argument's name
+  * @param Val Argument's value
+  */
+  UFUNCTION(BlueprintCallable, Category = "Script|Functions")
+  virtual bool GetCommandLineInt(FString Arg, int32 &Val);
+
 
   // Begin UActorComponent interface.
   virtual void OnRegister() override;

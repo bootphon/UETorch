@@ -106,3 +106,37 @@ bool UTorchPluginComponent::CallTorchFunctionArray(FString FunctionName, TArray<
   return bSuccess;
 }
 
+bool UTorchPluginComponent::GetCommandLineString(FString Arg, FString &Val)
+{
+  bool bSuccess = false;
+  if (Context)
+  {
+    bSuccess = Context->CallFunctionString("GetCommandLineString", Arg, Val);
+  }
+  return bSuccess;
+}
+
+bool UTorchPluginComponent::GetCommandLineFloat(FString Arg, float &Val)
+{
+  bool bSuccess = false;
+  if (Context)
+  {
+    FString Out;
+    bSuccess = Context->CallFunctionString("GetCommandLineFloat", Arg, Out);
+    Val = FCString::Atof(*Out);
+  }
+  return bSuccess;
+}
+
+bool UTorchPluginComponent::GetCommandLineInt(FString Arg, int32 &Val)
+{
+  bool bSuccess = false;
+  if (Context)
+  {
+    FString Out;
+    bSuccess = Context->CallFunctionString("GetCommandLineInt", Arg, Out);
+    Val = FCString::Atoi(*Out);
+  }
+  return bSuccess;
+}
+
