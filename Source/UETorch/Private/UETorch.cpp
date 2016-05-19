@@ -708,40 +708,21 @@ extern "C" bool CaptureDepthField(UObject* _this, const IntSize* size, void* dat
 }
 
 extern "C" bool CommandLineString(char* arg, char* val, int* val_len) {
-  //printf("Get: (%s)\n",TCHAR_TO_ANSI(FCommandLine::Get()));
-  //printf("Original: (%s)\n",TCHAR_TO_ANSI(FCommandLine::GetOriginal()));
   FString value;
   if (FParse::Value(FCommandLine::Get(), ANSI_TO_TCHAR(arg), value)) {
-    //printf("%s\n",TCHAR_TO_ANSI(*value));
     value = value.Replace(TEXT("\""), TEXT(""));
-    //printf("%s\n",TCHAR_TO_ANSI(*value));
     value = value.Replace(TEXT("="), TEXT(""));
-    //printf("%s\n",TCHAR_TO_ANSI(*value));
-    //val = TCHAR_TO_ANSI(*value);
-    //printf("%s\n",val);
-    
     sprintf(val, "%s",TCHAR_TO_ANSI(*value));
-    //printf("%s\n",val);
-    
-    //*val_len = value.Len();
-    //printf("%d\n",*val_len);
-    
     *val_len = int(strlen(val));
-    //printf("%d\n",*val_len);
     return true;
   }
   return false;
 }
  
 extern "C" bool CommandLineFloat(char* arg, float* val) {
-  //printf("CommandLineFloat start\n");
-  //printf("Get: (%s)\n",TCHAR_TO_ANSI(FCommandLine::Get()));
-  //printf("Original: (%s)\n",TCHAR_TO_ANSI(FCommandLine::GetOriginal()));
-  //printf("arg2 : (%s)\n",arg);
   if (FParse::Value(FCommandLine::Get(), ANSI_TO_TCHAR(arg), *val)) {
     return true;
   }
-  //printf("CommandLineFloat end\n");
   return false;
 }
  

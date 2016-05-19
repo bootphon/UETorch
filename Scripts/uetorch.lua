@@ -198,14 +198,10 @@ end
 -------------------------------------------------------------------------------
 
 function GetCommandLineString(arg)
-   print("GetCommandLineString " .. arg)
    local c_arg = ffi.new('char[30]', arg)
    local value = ffi.new('char[?]', 100)
    local value_len = ffi.new('int[?]', 1)
    if utlib.CommandLineString(c_arg, value, value_len) then
-      print("value (string) = " .. ffi.string(value, value_len[0]))
-      --print("value (string) = " .. values[0])
-      --print("value_len = " .. value_len[0])
       return ffi.string(value, value_len[0])
    else
       print(arg .. " not found")
@@ -214,11 +210,9 @@ function GetCommandLineString(arg)
 end
 
 function GetCommandLineFloat(arg)
-   print("GetCommandLineFloat " .. arg)
    local c_arg = ffi.new('char[30]', arg)
    local value = ffi.new('float[?]', 1)
    if utlib.CommandLineFloat(c_arg, value) then
-      print("value (float) = " .. value[0])
       return value[0]
    else
       print(arg .. " not found")
@@ -227,11 +221,9 @@ function GetCommandLineFloat(arg)
 end
 
 function GetCommandLineInt(arg)
-   print("GetCommandLineInt " .. arg)
    local c_arg = ffi.new('char[30]', arg)
    local value = ffi.new('int[?]', 1)
    if utlib.CommandLineInt(c_arg, value) then
-      print("value (int) = " .. value[0])
       return value[0]
    else
       print(arg .. " not found")
