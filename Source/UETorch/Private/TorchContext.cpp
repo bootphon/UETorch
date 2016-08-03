@@ -17,6 +17,7 @@ const ANSICHAR *UTPackage = "uetorch";
 
 FTorchContext* FTorchContext::Create(const FString& SourceCode, UObject* Owner)
 {
+	UE_LOG(LogUETorch, Log, TEXT("FTorchContext::Create"));
 	FTorchContext* NewContext = NULL;
 #if WITH_LUA
 	NewContext = new FTorchContext();
@@ -25,6 +26,7 @@ FTorchContext* FTorchContext::Create(const FString& SourceCode, UObject* Owner)
 	{
 		if (NewContext->Initialize(SourceCode, Owner))
 		{
+			UE_LOG(LogScriptPlugin, Log, TEXT("Initialize done, RegisterUETorchLibrary"));
 			NewContext->RegisterUETorchLibrary();
 		}
 		else
@@ -61,6 +63,7 @@ luaL_Reg UETorchLib[] =
 };
 
 void FTorchContext::RegisterUETorchLibrary(){
+	UE_LOG(LogUETorch, Log, TEXT("FTorchContext::RegisterUETorchLibrary"));
 	lua_getglobal(LuaState, "UETorch");
 	if (lua_isnil(LuaState, -1))
 	{

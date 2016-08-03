@@ -14,6 +14,7 @@
 UTorchPluginComponent::UTorchPluginComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	UE_LOG(LogUETorch, Log, TEXT("UTorchPluginComponent::UTorchPluginComponent"));
 	PrimaryComponentTick.bCanEverTick = true;
 	bTickInEditor = false;
 	bAutoActivate = true;
@@ -23,6 +24,7 @@ UTorchPluginComponent::UTorchPluginComponent(const FObjectInitializer& ObjectIni
 }
 
 FString UTorchPluginComponent::MakeLuaInitString() {
+	UE_LOG(LogUETorch, Log, TEXT("UTorchPluginComponent::MakeLuaInitString"));
 	FString InitStr =
 		"require 'uetorch';" // FIXME: use local uetorch package
 		"local _main = require '" + MainModule + "';"
@@ -33,6 +35,7 @@ FString UTorchPluginComponent::MakeLuaInitString() {
 
 void UTorchPluginComponent::OnRegister()
 {
+	UE_LOG(LogUETorch, Log, TEXT("UTorchPluginComponent::OnRegister"));
 	Super::OnRegister();
 
 	if (GetWorld() && GetWorld()->WorldType != EWorldType::Editor)
@@ -49,6 +52,7 @@ void UTorchPluginComponent::OnRegister()
 
 void UTorchPluginComponent::InitializeComponent()
 {
+	UE_LOG(LogUETorch, Log, TEXT("UTorchPluginComponent::InitializeComponent"));
 	Super::InitializeComponent();
 	// FIXME: check if source file has changed?
 	if (Context)
@@ -68,6 +72,7 @@ void UTorchPluginComponent::TickComponent(float DeltaTime, enum ELevelTick TickT
 
 void UTorchPluginComponent::OnUnregister()
 {
+	UE_LOG(LogUETorch, Log, TEXT("UTorchPluginComponent::OnUnregister"));
 	if (Context)
 	{
 		Context->Destroy();

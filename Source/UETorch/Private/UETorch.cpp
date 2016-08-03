@@ -11,6 +11,8 @@
 #include "TorchPluginComponent.h"
 #include <type_traits>
 
+DEFINE_LOG_CATEGORY(LogUETorch);
+
 class FUETorch : public IUETorch
 {
 	/** IModuleInterface implementation */
@@ -22,11 +24,12 @@ IMPLEMENT_MODULE(FUETorch, UETorch)
 
 void FUETorch::StartupModule()
 {
-	printf("FUETorch Startup\n");
+	UE_LOG(LogUETorch, Log, TEXT("FUETorch Startup"));
 }
 
 void FUETorch::ShutdownModule()
 {
+	UE_LOG(LogUETorch, Log, TEXT("FUETorch ShutdownModule"));
 }
 
 /*************************************************************************
