@@ -41,6 +41,7 @@ void PressKey(const char *key, int ControllerId, int eventType);
 void SetMouse(int x, int y);
 bool SetTickDeltaBounds(UObject* _this, float MinDeltaSeconds, float MaxDeltaSeconds);
 bool SetResolution(int x, int y);
+void ExecuteConsoleCommand(UObject* _this, char* command);
 
 bool GetActorLocation(AActor* object, float* x, float* y, float* z);
 bool GetActorRotation(AActor* object, float* pitch, float* yaw, float* roll);
@@ -569,5 +570,18 @@ uetorch.ReleaseComponent = utlib.ReleaseComponent
 uetorch.SetTargetLocation = utlib.SetTargetLocation
 uetorch.WakeRigidBody = utlib.WakeRigidBody
 uetorch.IgnoreCollisionWithPawn = utlib.IgnoreCollisionWithPawn
+
+-------------------------------------------------------------------------------
+-- Execute UE commands
+-- For example: RestartLevel
+-- For a detailed list run dumpconsolecommands in the command line
+--
+-------------------------------------------------------------------------------
+
+function uetorch.ExecuteConsoleCommand(command)
+   local len = #command + 1
+   local char_command = ffi.new('char[' .. len .. ']', command)
+   utlib.ExecuteConsoleCommand(this, char_command)
+end
 
 return uetorch
