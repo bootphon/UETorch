@@ -386,7 +386,6 @@ extern "C" bool CaptureSegmentation(UObject* _this, const IntSize* size, void* s
 					}
 				}
 			}
-
 			if(verbose) {
 				printf("(%d, %d) Actor: %p Seg: %d bHit: %d\n",
 					x, y, Actor, *seg_values, bHit);
@@ -664,7 +663,7 @@ extern "C" bool CaptureOpticalFlow(UObject* _this, const IntSize* size, void* fl
  * @param verbose verbose output
  * @returns true if the optical flow capture was successful
  */
-extern "C" bool CaptureDepthField(UObject* _this, const IntSize* size, void* data, int stride, bool verbose)
+extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose)
 {
 	FViewport* Viewport = nullptr;
 	APlayerController* PlayerController = nullptr;
@@ -676,23 +675,19 @@ extern "C" bool CaptureDepthField(UObject* _this, const IntSize* size, void* dat
 		return false;
 	}
 
-	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(_this, 0);
-	if(PlayerCharacter == NULL) {
-		printf("PlayerCharacter null\n");
+	if(object == NULL) {
+		printf("Object is null\n");
 		return false;
 	}
 
 	float HitResultTraceDistance = 100000.f;
 
-	FVector PlayerLoc  = PlayerCharacter->GetActorLocation();
-	FRotator PlayerRot = PlayerController->GetControlRotation();
+	FVector PlayerLoc  = object->GetActorLocation();
+	FRotator PlayerRot = object->GetActorRotation();
 	FRotationMatrix PlayerRotMat(PlayerRot);
 
 	FVector PlayerF = PlayerRotMat.GetScaledAxis( EAxis::X );
 	PlayerF.Normalize();
-
-	FBodyInstance* PlayerBodyInst = GetBodyInstance(PlayerCharacter);
-	PlayerBodyInst->SetAngularVelocity(FVector(0,0,0), false); // FIXME
 
 	ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility; // FIXME?
 	bool bTraceComplex = false; // FIXME?

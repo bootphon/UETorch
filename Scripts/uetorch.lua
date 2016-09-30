@@ -35,7 +35,7 @@ bool CaptureScreenshot(IntSize* size, void* data);
 bool CaptureSegmentation(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, bool verbose);
 bool CaptureMasks(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, bool verbose);
 bool CaptureOpticalFlow(UObject* _this, const IntSize* size, void* flow_data, void* rgb_data, float maxFlow, int stride, bool verbose);
-bool CaptureDepthField(UObject* _this, const IntSize* size, void* data, int stride, bool verbose);
+bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose);
 
 void PressKey(const char *key, int ControllerId, int eventType);
 void SetMouse(int x, int y);
@@ -409,13 +409,14 @@ end
 -- Capture the depth field at each pixel in the viewport.
 --
 -- Parameters:
+--     actor: the actor from which we will calculate the depth field
 --     stride: stride in pixels at which to compute the depth field. (Default: 1)
 --     verbose: verbose output (Default: false)
 -- Returns:
 --     depth: A FloatTensor of size (Y/stride,X/stride) containing the 2D
 --            depth field at each point in the viewport.
 --
-function uetorch.DepthField(stride, verbose)
+function uetorch.DepthField(actor, stride, verbose)
    stride = stride or 1
    verbose = verbose or false
    local size = ffi.new('IntSize[?]', 1)
@@ -429,7 +430,7 @@ function uetorch.DepthField(stride, verbose)
    local depth = torch.FloatTensor(math.ceil(size[0].Y/stride),
                    math.ceil(size[0].X/stride))
 
-   if not utlib.CaptureDepthField(this, size, depth:storage():cdata().data, stride, verbose) then
+   if not utlib.CaptureDepthField(this, actor, size, depth:storage():cdata().data, stride, verbose) then
       print("ERROR: Unable to capture depth field")
       return nil
    end
