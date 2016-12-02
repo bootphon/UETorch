@@ -32,10 +32,10 @@ struct UPhysicsHandleComponent;
 
 void GetViewportSize(IntSize* r);
 bool CaptureScreenshot(IntSize* size, void* data);
-bool CaptureSegmentation(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, bool verbose);
+bool CaptureSegmentation(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, const AActor** ignoredObjects, int nIgnoredObjects, bool verbose);
 bool CaptureMasks(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, bool verbose);
 bool CaptureOpticalFlow(UObject* _this, const IntSize* size, void* flow_data, void* rgb_data, float maxFlow, int stride, bool verbose);
-bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose);
+bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose, const AActor** ignoredObjects, int nIgnoredObjects);
 
 void PressKey(const char *key, int ControllerId, int eventType);
 void SetMouse(int x, int y);
@@ -287,6 +287,8 @@ end
 -- Parameters:
 --     objects: a list of ffi Actor* pointers, for which segmentation masks should
 --              be recorded.
+--     ignored_objects: a list of ffi Actor* pointers which are ignored
+--                      by the ray tracing algorithm during segmentation.
 --     stride: stride in pixels at which to compute the masks. (Default: 1)
 --     verbose: verbose output (Default: false)
 --
@@ -296,7 +298,7 @@ end
 --     object at this viewport pixel, or 0 if there is no object from the list at
 --     that location in the viewport.
 --
-function uetorch.ObjectSegmentation(objects, stride, verbose)
+function uetorch.ObjectSegmentation(objects, ignored_objects, stride, verbose)
    assert(objects, "must specify objects for segmentation")
    stride = stride or 1
    verbose = verbose or false
@@ -313,7 +315,21 @@ function uetorch.ObjectSegmentation(objects, stride, verbose)
 
    local objectArr = ffi.new(string.format("AActor*[%d]",#objects), objects)
 
-   if not utlib.CaptureSegmentation(this, size, seg:storage():cdata().data, stride, objectArr, #objects, verbose) then
+   local captured = false
+   if not ignored_objects or #ignored_objects == 0 then  -- no objects to ignore
+      if(verbose) then print('no object to ignore') end
+      captured = utlib.CaptureSegmentation(
+         this, size, seg:storage():cdata().data, stride,
+         objectArr, #objects, nil, 0, verbose)
+   else
+      if(verbose) then print('ignoring ' .. #ignored_objects .. ' objects') end
+      local ignoredObjectArr = ffi.new(string.format("AActor*[%d]", #ignored_objects), ignored_objects)
+      captured = utlib.CaptureSegmentation(
+         this, size, seg:storage():cdata().data, stride,
+         objectArr, #objects, ignoredObjectArr, #ignored_objects, verbose)
+   end
+
+   if not captured then
       print("ERROR: Unable to capture segmentation")
       return nil
    end
@@ -410,13 +426,16 @@ end
 --
 -- Parameters:
 --     actor: the actor from which we will calculate the depth field
+--     ignored_objects: a list of ffi Actor* pointers which are ignored
+--                      by the ray tracing algorithm during depth fiels estimation.
 --     stride: stride in pixels at which to compute the depth field. (Default: 1)
 --     verbose: verbose output (Default: false)
+--
 -- Returns:
 --     depth: A FloatTensor of size (Y/stride,X/stride) containing the 2D
 --            depth field at each point in the viewport.
 --
-function uetorch.DepthField(actor, stride, verbose)
+function uetorch.DepthField(actor, ignored_objects, stride, verbose)
    stride = stride or 1
    verbose = verbose or false
    local size = ffi.new('IntSize[?]', 1)
@@ -430,10 +449,28 @@ function uetorch.DepthField(actor, stride, verbose)
    local depth = torch.FloatTensor(math.ceil(size[0].Y/stride),
                    math.ceil(size[0].X/stride))
 
-   if not utlib.CaptureDepthField(this, actor, size, depth:storage():cdata().data, stride, verbose) then
-      print("ERROR: Unable to capture depth field")
+   local captured = false
+   if not ignored_objects or #ignored_objects == 0 then  -- no objects to ignore
+      if(verbose) then print('depth: no object to ignore') end
+      captured = utlib.CaptureDepthField(
+         this, actor, size, depth:storage():cdata().data, stride, verbose, nil, 0)
+   else
+      if(verbose) then print('depth: ignoring ' .. #ignored_objects .. ' objects') end
+      local ignoredObjectArr = ffi.new(string.format("AActor*[%d]", #ignored_objects), ignored_objects)
+      captured = utlib.CaptureDepthField(
+         this, actor, size, depth:storage():cdata().data, stride, verbose,
+         ignoredObjectArr, #ignored_objects)
+   end
+
+   if not captured then
+      print("ERROR: Unable to capture segmentation")
       return nil
    end
+
+   -- if not utlib.CaptureDepthField(this, actor, size, depth:storage():cdata().data, stride, verbose) then
+   --    print("ERROR: Unable to capture depth field")
+   --    return nil
+   -- end
 
    return depth
 end

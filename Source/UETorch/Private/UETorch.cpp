@@ -15,20 +15,21 @@
 
 class FUETorch : public IUETorch
 {
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
+    /** IModuleInterface implementation */
+    virtual void StartupModule() override;
+    virtual void ShutdownModule() override;
 };
 
 IMPLEMENT_MODULE(FUETorch, UETorch)
 
 void FUETorch::StartupModule()
 {
-	printf("FUETorch Startup\n");
+    printf("FUETorch Startup\n");
 }
 
 void FUETorch::ShutdownModule()
 {
+    printf("FUETorch Shutdown\n");
 }
 
 /*************************************************************************
@@ -48,11 +49,11 @@ void FUETorch::ShutdownModule()
  *        IE_PRESSED  - press the key
  *        IE_RELEASED - release the key
  */
- extern "C" void PressKey(const char *key, int ControllerId, int eventType) {
-	auto fkey = FKey(key);
-	auto ViewportClient = GEngine->GameViewport;
+extern "C" void PressKey(const char *key, int ControllerId, int eventType) {
+    auto fkey = FKey(key);
+    auto ViewportClient = GEngine->GameViewport;
 
-	ViewportClient->InputKey(ViewportClient->Viewport, ControllerId, fkey, (EInputEvent) eventType);
+    ViewportClient->InputKey(ViewportClient->Viewport, ControllerId, fkey, (EInputEvent) eventType);
 }
 
 // SetTickDeltaBounds() requires a patch to Unreal Engine that adds MinDeltaSeconds and MaxDeltaSeconds
@@ -60,31 +61,31 @@ void FUETorch::ShutdownModule()
 // This is an SFINAE check to see whether the patch has been applied.
 struct UWorldHasMinDeltaSeconds
 {
-	struct Fallback { int MinDeltaSeconds; };
-	struct Combined : UWorld, Fallback { };
-	template<typename U, U> struct SFINAE;
+    struct Fallback { int MinDeltaSeconds; };
+    struct Combined : UWorld, Fallback { };
+    template<typename U, U> struct SFINAE;
 
-	template<typename U> static char f(SFINAE<int Fallback::*, &U::MinDeltaSeconds>*);
-	template<typename U> static int f(...);
+    template<typename U> static char f(SFINAE<int Fallback::*, &U::MinDeltaSeconds>*);
+    template<typename U> static int f(...);
 
-	static bool const value = sizeof(f<Combined>(0)) == sizeof(int);
+    static bool const value = sizeof(f<Combined>(0)) == sizeof(int);
 };
 
 
 template<typename WorldT>
 bool SetTickDeltaBoundsInternal(WorldT* World, float MinDeltaSeconds, float MaxDeltaSeconds, std::true_type)
 {
-	World->MinDeltaSeconds = MinDeltaSeconds;
-	World->MaxDeltaSeconds = MaxDeltaSeconds;
-	return true;
+    World->MinDeltaSeconds = MinDeltaSeconds;
+    World->MaxDeltaSeconds = MaxDeltaSeconds;
+    return true;
 }
 
 template<typename WorldT>
 bool SetTickDeltaBoundsInternal(WorldT* World, float MinDeltaSeconds, float MaxDeltaSeconds, std::false_type)
 {
-	printf("You need to the patch file located at Engine/Plugins/UETorch/UnrealEngine.patch\n");
-	printf("and rebuild Unreal Engine for SetTickDeltaBounds to work\n");
-	return false;
+    printf("You need to the patch file located at Engine/Plugins/UETorch/UnrealEngine.patch\n");
+    printf("and rebuild Unreal Engine for SetTickDeltaBounds to work\n");
+    return false;
 }
 
 /**
@@ -101,18 +102,18 @@ bool SetTickDeltaBoundsInternal(WorldT* World, float MinDeltaSeconds, float MaxD
  */
 extern "C" bool SetTickDeltaBounds(UObject* _this, float MinDeltaSeconds, float MaxDeltaSeconds)
 {
-	UWorld* World = GEngine->GetWorldFromContextObject(_this);
-	if(World == NULL) {
-		printf("World null\n");
-		return false;
-	}
-	return SetTickDeltaBoundsInternal(World, MinDeltaSeconds, MaxDeltaSeconds,
-		std::integral_constant<bool, UWorldHasMinDeltaSeconds::value>());
+    UWorld* World = GEngine->GetWorldFromContextObject(_this);
+    if(World == NULL) {
+        printf("World null\n");
+        return false;
+    }
+    return SetTickDeltaBoundsInternal(World, MinDeltaSeconds, MaxDeltaSeconds,
+                                      std::integral_constant<bool, UWorldHasMinDeltaSeconds::value>());
 }
 
 typedef struct {
-	int32 X;
-	int32 Y;
+    int32 X;
+    int32 Y;
 } IntSize;
 
 /**
@@ -120,22 +121,22 @@ typedef struct {
  */
 extern "C" void GetViewportSize(IntSize* r)
 {
-	if(GEngine == NULL){
-		printf("GEngine null\n");
-		return;
-	}
-	if(GEngine->GameViewport == NULL){
-		printf("GameViewport null\n");
-		return;
-	}
-	if(GEngine->GameViewport->Viewport == NULL){
-		printf("Viewport null\n");
-		return;
-	}
-	FViewport* Viewport = GEngine->GameViewport->Viewport;
-	auto size = Viewport->GetSizeXY();
-	r->X = size.X;
-	r->Y = size.Y;
+    if(GEngine == NULL){
+        printf("GEngine null\n");
+        return;
+    }
+    if(GEngine->GameViewport == NULL){
+        printf("GameViewport null\n");
+        return;
+    }
+    if(GEngine->GameViewport->Viewport == NULL){
+        printf("Viewport null\n");
+        return;
+    }
+    FViewport* Viewport = GEngine->GameViewport->Viewport;
+    auto size = Viewport->GetSizeXY();
+    r->X = size.X;
+    r->Y = size.Y;
 }
 
 /**
@@ -145,20 +146,20 @@ extern "C" void GetViewportSize(IntSize* r)
  */
 extern "C" void SetMouse(int x, int y)
 {
-	if(GEngine == NULL){
-		printf("GEngine null\n");
-		return;
-	}
-	if(GEngine->GameViewport == NULL){
-		printf("GameViewport null\n");
-		return;
-	}
-	if(GEngine->GameViewport->Viewport == NULL){
-		printf("Viewport null\n");
-		return;
-	}
-	FViewport* Viewport = GEngine->GameViewport->Viewport;
-	Viewport->SetMouse(x, y);
+    if(GEngine == NULL){
+        printf("GEngine null\n");
+        return;
+    }
+    if(GEngine->GameViewport == NULL){
+        printf("GameViewport null\n");
+        return;
+    }
+    if(GEngine->GameViewport->Viewport == NULL){
+        printf("Viewport null\n");
+        return;
+    }
+    FViewport* Viewport = GEngine->GameViewport->Viewport;
+    Viewport->SetMouse(x, y);
 }
 
 
@@ -172,152 +173,152 @@ extern "C" void SetMouse(int x, int y)
  */
 extern "C" bool CaptureScreenshot(IntSize* size, void* data)
 {
-	FlushRenderingCommands();
+    FlushRenderingCommands();
 
-	if(GEngine == NULL){
-		printf("GEngine null\n");
-		return false;
-	}
-	if(GEngine->GameViewport == NULL){
-		printf("GameViewport null\n");
-		return false;
-	}
-	if(GEngine->GameViewport->Viewport == NULL){
-		printf("Viewport null\n");
-		return false;
-	}
+    if(GEngine == NULL){
+        printf("GEngine null\n");
+        return false;
+    }
+    if(GEngine->GameViewport == NULL){
+        printf("GameViewport null\n");
+        return false;
+    }
+    if(GEngine->GameViewport->Viewport == NULL){
+        printf("Viewport null\n");
+        return false;
+    }
 
-	FViewport* Viewport = GEngine->GameViewport->Viewport;
-	TArray<FColor> Bitmap;
+    FViewport* Viewport = GEngine->GameViewport->Viewport;
+    TArray<FColor> Bitmap;
 
-	if (size->X != Viewport->GetSizeXY().X || size->Y != Viewport->GetSizeXY().Y) {
-		return false;
-	}
+    if (size->X != Viewport->GetSizeXY().X || size->Y != Viewport->GetSizeXY().Y) {
+        return false;
+    }
 
-	TSharedPtr<SWindow> WindowPtr = GEngine->GameViewport->GetWindow();
+    TSharedPtr<SWindow> WindowPtr = GEngine->GameViewport->GetWindow();
 
-	bool bScreenshotSuccessful = false;
+    bool bScreenshotSuccessful = false;
 
-	if( WindowPtr.IsValid() && FSlateApplication::IsInitialized() )
-	{
-		FIntVector Size(size->X, size->Y, 0);
-		TSharedRef<SWidget> WindowRef = WindowPtr.ToSharedRef();
-		bScreenshotSuccessful = FSlateApplication::Get().TakeScreenshot(WindowRef, Bitmap, Size);
-	}
-	else
-	{
-		FIntRect Rect(0, 0, size->X, size->Y);
-		bScreenshotSuccessful = GetViewportScreenShot(Viewport, Bitmap, Rect);
-	}
-	if(bScreenshotSuccessful)
-	{
-		float* values = (float*) data;
-		for (const FColor& color : Bitmap) {
-			*values++ = color.R / 255.0f;
-		}
-		for (const FColor& color : Bitmap) {
-			*values++ = color.G / 255.0f;
-		}
-		for (const FColor& color : Bitmap) {
-			*values++ = color.B / 255.0f;
-		}
-	}
+    if( WindowPtr.IsValid() && FSlateApplication::IsInitialized() )
+    {
+        FIntVector Size(size->X, size->Y, 0);
+        TSharedRef<SWidget> WindowRef = WindowPtr.ToSharedRef();
+        bScreenshotSuccessful = FSlateApplication::Get().TakeScreenshot(WindowRef, Bitmap, Size);
+    }
+    else
+    {
+        FIntRect Rect(0, 0, size->X, size->Y);
+        bScreenshotSuccessful = GetViewportScreenShot(Viewport, Bitmap, Rect);
+    }
+    if(bScreenshotSuccessful)
+    {
+        float* values = (float*) data;
+        for (const FColor& color : Bitmap) {
+            *values++ = color.R / 255.0f;
+        }
+        for (const FColor& color : Bitmap) {
+            *values++ = color.G / 255.0f;
+        }
+        for (const FColor& color : Bitmap) {
+            *values++ = color.B / 255.0f;
+        }
+    }
 
-	return bScreenshotSuccessful;
+    return bScreenshotSuccessful;
 }
 
 // Looks up the player's SceneView object
 // modeled after APlayerController::GetHitResultAtScreenPosition
 FSceneView* GetSceneView(APlayerController* PlayerController, UWorld* World) {
-	if(GEngine == NULL){
-		printf("GEngine null\n");
-		return NULL;
-	}
-	if(GEngine->GameViewport == NULL){
-		printf("GameViewport null\n");
-		return NULL;
-	}
-	if(GEngine->GameViewport->Viewport == NULL){
-		printf("Viewport null\n");
-		return NULL;
-	}
+    if(GEngine == NULL){
+        printf("GEngine null\n");
+        return NULL;
+    }
+    if(GEngine->GameViewport == NULL){
+        printf("GameViewport null\n");
+        return NULL;
+    }
+    if(GEngine->GameViewport->Viewport == NULL){
+        printf("Viewport null\n");
+        return NULL;
+    }
 
-	auto Viewport = GEngine->GameViewport->Viewport;
+    auto Viewport = GEngine->GameViewport->Viewport;
 
-	// Create a view family for the game viewport
-	FSceneViewFamilyContext ViewFamily(
-		FSceneViewFamily::ConstructionValues(
-			Viewport,
-			World->Scene,
-			GEngine->GameViewport->EngineShowFlags )
-		.SetRealtimeUpdate(true) );
+    // Create a view family for the game viewport
+    FSceneViewFamilyContext ViewFamily(
+                                       FSceneViewFamily::ConstructionValues(
+                                                                            Viewport,
+                                                                            World->Scene,
+                                                                            GEngine->GameViewport->EngineShowFlags )
+                                       .SetRealtimeUpdate(true) );
 
 
-	// Calculate a view where the player is to update the streaming from the players start location
-	FVector ViewLocation;
-	FRotator ViewRotation;
-	ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PlayerController->Player);
-	if (LocalPlayer == NULL) {
-		return NULL;
-	}
-	FSceneView* SceneView = LocalPlayer->CalcSceneView( &ViewFamily, /*out*/ ViewLocation, /*out*/ ViewRotation, Viewport );
-	return SceneView;
+    // Calculate a view where the player is to update the streaming from the players start location
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PlayerController->Player);
+    if (LocalPlayer == NULL) {
+        return NULL;
+    }
+    FSceneView* SceneView = LocalPlayer->CalcSceneView( &ViewFamily, /*out*/ ViewLocation, /*out*/ ViewRotation, Viewport );
+    return SceneView;
 }
 
 // a variant of FSceneView::SafeDeprojectFVector2D that avoids InverseFast().
 // Using InverseFast() sometimes leads to warning message spew from denormalized SceneView.ViewMatrix
 void FSceneView__SafeDeprojectFVector2D(const FSceneView* SceneView, const FVector2D& ScreenPos, FVector& out_WorldOrigin, FVector& out_WorldDirection)
 {
-	const FMatrix InverseViewMatrix = SceneView->ViewMatrices.ViewMatrix.Inverse();
-	const FMatrix InvProjectionMatrix = SceneView->ViewMatrices.GetInvProjMatrix();
+    const FMatrix InverseViewMatrix = SceneView->ViewMatrices.ViewMatrix.Inverse();
+    const FMatrix InvProjectionMatrix = SceneView->ViewMatrices.GetInvProjMatrix();
 
-	SceneView->DeprojectScreenToWorld(ScreenPos, SceneView->UnscaledViewRect, InverseViewMatrix, InvProjectionMatrix, out_WorldOrigin, out_WorldDirection);
+    SceneView->DeprojectScreenToWorld(ScreenPos, SceneView->UnscaledViewRect, InverseViewMatrix, InvProjectionMatrix, out_WorldOrigin, out_WorldDirection);
 }
 
 // Looks up common UE objects necessary for capturing segmentation, etc.
 bool InitCapture(UObject* _this, const IntSize* size, FViewport** pViewport, APlayerController** pPlayerController, UWorld** pWorld, FSceneView** pSceneView)
 {
-	FlushRenderingCommands();
+    FlushRenderingCommands();
 
-	if(GEngine == NULL){
-		printf("GEngine null\n");
-		return false;
-	}
-	if(GEngine->GameViewport == NULL){
-		printf("GameViewport null\n");
-		return false;
-	}
-	if(GEngine->GameViewport->Viewport == NULL){
-		printf("Viewport null\n");
-		return false;
-	}
+    if(GEngine == NULL){
+        printf("GEngine null\n");
+        return false;
+    }
+    if(GEngine->GameViewport == NULL){
+        printf("GameViewport null\n");
+        return false;
+    }
+    if(GEngine->GameViewport->Viewport == NULL){
+        printf("Viewport null\n");
+        return false;
+    }
 
-	*pViewport = GEngine->GameViewport->Viewport;
+    *pViewport = GEngine->GameViewport->Viewport;
 
-	if (size->X != (*pViewport)->GetSizeXY().X || size->Y != (*pViewport)->GetSizeXY().Y) {
-		printf("Wrong size\n");
-		return false;
-	}
+    if (size->X != (*pViewport)->GetSizeXY().X || size->Y != (*pViewport)->GetSizeXY().Y) {
+        printf("Wrong size\n");
+        return false;
+    }
 
-	*pPlayerController = UGameplayStatics::GetPlayerController(_this, 0);
-	if(*pPlayerController == NULL) {
-		printf("PlayerController null\n");
-		return false;
-	}
+    *pPlayerController = UGameplayStatics::GetPlayerController(_this, 0);
+    if(*pPlayerController == NULL) {
+        printf("PlayerController null\n");
+        return false;
+    }
 
-	*pWorld = GEngine->GetWorldFromContextObject(_this);
-	if(*pWorld == NULL) {
-		printf("World null\n");
-		return false;
-	}
+    *pWorld = GEngine->GetWorldFromContextObject(_this);
+    if(*pWorld == NULL) {
+        printf("World null\n");
+        return false;
+    }
 
-	*pSceneView = GetSceneView(*pPlayerController, *pWorld);
-	if(*pSceneView == NULL) {
-		printf("SceneView null\n");
-		return false;
-	}
+    *pSceneView = GetSceneView(*pPlayerController, *pWorld);
+    if(*pSceneView == NULL) {
+        printf("SceneView null\n");
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -333,67 +334,78 @@ bool InitCapture(UObject* _this, const IntSize* size, FViewport** pViewport, APl
  * @param stride stride in pixels at which to compute the optical flow.
  * @param objects array of nObjects Actor* pointers which will be recorded in the segmentation mask
  * @param nObjects size of the objects array
+ * @param ignoredObjects array of nIgnoredObjects Actor* pointers
+ *                       which will be ignored during segmentation.
+ * @param nIgnored Objects size of the ignoredObjects array
  * @param verbose verbose output
  * @returns true if the optical flow capture was successful
  */
-extern "C" bool CaptureSegmentation(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, bool verbose)
+extern "C" bool CaptureSegmentation(UObject* _this, const IntSize* size,
+                                    void* seg_data, int stride,
+                                    const AActor** objects, int nObjects,
+                                    const AActor** ignoredObjects, int nIgnoredObjects,
+                                    bool verbose)
 {
-	FViewport* Viewport = nullptr;
-	APlayerController* PlayerController = nullptr;
-	UWorld* World = nullptr;
-	FSceneView* SceneView = nullptr;
+    FViewport* Viewport = nullptr;
+    APlayerController* PlayerController = nullptr;
+    UWorld* World = nullptr;
+    FSceneView* SceneView = nullptr;
 
-	bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
-	if(!bOk) {
-		return false;
-	}
+    bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
+    if(!bOk) {
+        return false;
+    }
 
-	float HitResultTraceDistance = 100000.f;
+    float HitResultTraceDistance = 100000.f;
 
-	ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility;
-	bool bTraceComplex = false;
-	FHitResult HitResult;
-	int* seg_values = (int*) seg_data;
+    ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility;
+    bool bTraceComplex = false;
+    FHitResult HitResult;
+    int* seg_values = (int*) seg_data;
 
-	if(verbose) {
-		for(int i = 0; i < nObjects; i++) {
-			printf("Object %d: %p\n", i, objects[i]);
-		}
-	}
+    if(verbose) {
+        for(int i = 0; i < nObjects; i++) {
+            printf("Object %d: %p\n", i, objects[i]);
+        }
+    }
 
-	// Iterate over pixels
-	FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
-	for (int y = 0; y < size->Y; y+=stride) {
-		for (int x = 0; x < size->X; x+=stride) {
+    // Iterate over pixels
+    FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
+    for (int i = 0; i < nIgnoredObjects; i++) {
+        CollisionQueryParams.AddIgnoredActor(ignoredObjects[i]);
+    }
 
-			FVector2D ScreenPosition(x, y);
-			FVector WorldOrigin, WorldDirection;
-			FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
-			// Cast ray from pixel to find intersecting object
-			bool bHit = World->LineTraceSingleByChannel(HitResult, WorldOrigin, WorldOrigin + WorldDirection * HitResultTraceDistance, TraceChannel, CollisionQueryParams);
-			if (verbose) printf("E\n");
-			AActor* Actor = NULL;
-			*seg_values = 0; // no foreground object
-			if(bHit) {
-				Actor = HitResult.GetActor();
-				if(Actor != NULL)
-				{
-					for (int i = 0; i < nObjects; i++) {
-						if (objects[i] == Actor) {
-							*seg_values = i+1;
-							break;
-						}
-					}
-				}
-			}
-			if(verbose) {
-				printf("(%d, %d) Actor: %p Seg: %d bHit: %d\n",
-					x, y, Actor, *seg_values, bHit);
-			}
-			seg_values++;
-		}
-	}
-	return true;
+    for (int y = 0; y < size->Y; y+=stride) {
+        for (int x = 0; x < size->X; x+=stride) {
+
+            FVector2D ScreenPosition(x, y);
+            FVector WorldOrigin, WorldDirection;
+            FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
+            // Cast ray from pixel to find intersecting object
+            bool bHit = World->LineTraceSingleByChannel(HitResult, WorldOrigin, WorldOrigin + WorldDirection * HitResultTraceDistance, TraceChannel, CollisionQueryParams);
+            if (verbose) printf("E\n");
+            AActor* Actor = NULL;
+            *seg_values = 0; // no foreground object
+            if(bHit) {
+                Actor = HitResult.GetActor();
+                if(Actor != NULL)
+                {
+                    for (int i = 0; i < nObjects; i++) {
+                        if (objects[i] == Actor) {
+                            *seg_values = i+1;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(verbose) {
+                printf("(%d, %d) Actor: %p Seg: %d bHit: %d\n",
+                       x, y, Actor, *seg_values, bHit);
+            }
+            seg_values++;
+        }
+    }
+    return true;
 }
 
 /**
@@ -412,67 +424,70 @@ extern "C" bool CaptureSegmentation(UObject* _this, const IntSize* size, void* s
  */
 extern "C" bool CaptureMasks(UObject* _this, const IntSize* size, void* seg_data, int stride, const AActor** objects, int nObjects, bool verbose)
 {
-	FViewport* Viewport = nullptr;
-	APlayerController* PlayerController = nullptr;
-	UWorld* World = nullptr;
-	FSceneView* SceneView = nullptr;
+    FViewport* Viewport = nullptr;
+    APlayerController* PlayerController = nullptr;
+    UWorld* World = nullptr;
+    FSceneView* SceneView = nullptr;
 
-	bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
-	if(!bOk) {
-		return false;
-	}
+    bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
+    if(!bOk) {
+        return false;
+    }
 
-	float HitResultTraceDistance = 100000.f;
+    float HitResultTraceDistance = 100000.f;
 
-	ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility;
-	bool bTraceComplex = false;
-	TArray<struct FHitResult> HitResults;
-	char* seg_values = (char*) seg_data;
+    ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility;
+    bool bTraceComplex = false;
+    TArray<struct FHitResult> HitResults;
+    char* seg_values = (char*) seg_data;
 
-	if(verbose) {
-		for(int i = 0; i < nObjects; i++) {
-			printf("Object %d: %p\n", i, objects[i]);
-		}
-	}
+    if(verbose) {
+        for(int i = 0; i < nObjects; i++) {
+            printf("Object %d: %p\n", i, objects[i]);
+        }
+    }
 
-	AActor* Actor = nullptr;
-	FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
-	for (int y = 0; y < size->Y; y+=stride) {
-		for (int x = 0; x < size->X; x+=stride) {
+    AActor* Actor = nullptr;
+    FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
+    for (int y = 0; y < size->Y; y+=stride) {
+        for (int x = 0; x < size->X; x+=stride) {
 
-			FVector2D ScreenPosition(x, y);
+            FVector2D ScreenPosition(x, y);
 
-			FVector WorldOrigin, WorldDirection;
-			FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
+            FVector WorldOrigin, WorldDirection;
+            FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
 
-			HitResults.Reset();
+            HitResults.Reset();
 
-			// LineTraceMultiByChannel stops recording hits after it sees a blocking hit in the trace channel,
-			// so we don't want any objects to generate blocking hits.
-			//
-			// By setting collision channel to 0 (default) and CollisionResponseParams to ECR_Overlap,
-			// I cause all objects to generate non-blocking (Overlap) hit events
-			//
-			// Note: bHit is true only if a blocking hit is generated, so it should always be false here
-			bool bHit = World->LineTraceMultiByChannel(HitResults, WorldOrigin, WorldOrigin + WorldDirection * HitResultTraceDistance, (ECollisionChannel) 0, CollisionQueryParams, FCollisionResponseParams(ECR_Overlap));
+            // LineTraceMultiByChannel stops recording hits after it
+            // sees a blocking hit in the trace channel, so we don't
+            // want any objects to generate blocking hits.
+            //
+            // By setting collision channel to 0 (default) and
+            // CollisionResponseParams to ECR_Overlap, I cause all
+            // objects to generate non-blocking (Overlap) hit events
+            //
+            // Note: bHit is true only if a blocking hit is generated,
+            // so it should always be false here
+            bool bHit = World->LineTraceMultiByChannel(HitResults, WorldOrigin, WorldOrigin + WorldDirection * HitResultTraceDistance, (ECollisionChannel) 0, CollisionQueryParams, FCollisionResponseParams(ECR_Overlap));
 
-			for (int i = 0; i < nObjects; i++) {
-				*seg_values = 0;
-				for(int h = 0; h < HitResults.Num(); h++) {
-					Actor = HitResults[h].GetActor();
-					if (Actor == objects[i]) {
-						if(verbose) {
-							printf("  >> %d %d %d %d %p %p\n", x, y, i, h, Actor, objects[i]);
-						}
-						*seg_values = 1;
-						break;
-					}
-				}
-				seg_values++;
-			}
-		}
-	}
-	return true;
+            for (int i = 0; i < nObjects; i++) {
+                *seg_values = 0;
+                for(int h = 0; h < HitResults.Num(); h++) {
+                    Actor = HitResults[h].GetActor();
+                    if (Actor == objects[i]) {
+                        if(verbose) {
+                            printf("  >> %d %d %d %d %p %p\n", x, y, i, h, Actor, objects[i]);
+                        }
+                        *seg_values = 1;
+                        break;
+                    }
+                }
+                seg_values++;
+            }
+        }
+    }
+    return true;
 }
 
 /**
@@ -486,30 +501,30 @@ extern "C" bool CaptureMasks(UObject* _this, const IntSize* size, void* seg_data
  * I'm a bit worried about float precision here.
  */
 FVector getDPixelDScreen(const FVector2D &ScreenPosition, const int dim, const FSceneView *SceneView) {
-	// centered difference
-	FVector2D ScreenPositionP = ScreenPosition;
-	ScreenPositionP[dim] += 1;
-	FVector WorldOriginP, WorldDirectionP;
-	FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPositionP, WorldOriginP, WorldDirectionP);
+    // centered difference
+    FVector2D ScreenPositionP = ScreenPosition;
+    ScreenPositionP[dim] += 1;
+    FVector WorldOriginP, WorldDirectionP;
+    FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPositionP, WorldOriginP, WorldDirectionP);
 
-	// centered difference
-	FVector2D ScreenPositionM = ScreenPosition;
-	ScreenPositionM[dim] -= 1;
-	FVector WorldOriginM, WorldDirectionM;
-	FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPositionM, WorldOriginM, WorldDirectionM);
+    // centered difference
+    FVector2D ScreenPositionM = ScreenPosition;
+    ScreenPositionM[dim] -= 1;
+    FVector WorldOriginM, WorldDirectionM;
+    FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPositionM, WorldOriginM, WorldDirectionM);
 
-	FVector DScreenDPixel = (WorldOriginP - WorldOriginM) / 2.0f;
-	FVector DPixelDScreen = DScreenDPixel / DScreenDPixel.SizeSquared();
-	return DPixelDScreen;
+    FVector DScreenDPixel = (WorldOriginP - WorldOriginM) / 2.0f;
+    FVector DPixelDScreen = DScreenDPixel / DScreenDPixel.SizeSquared();
+    return DPixelDScreen;
 }
 
 FBodyInstance* GetBodyInstance(AActor* Actor) {
-	auto SceneComponent = Actor->GetRootComponent();
-	if(SceneComponent == NULL) return NULL;
-	auto PrimitiveComponent = Cast<UPrimitiveComponent>(SceneComponent);
-	if (PrimitiveComponent == NULL) return NULL;
-	FBodyInstance* BodyInst = PrimitiveComponent->GetBodyInstance();
-	return BodyInst;
+    auto SceneComponent = Actor->GetRootComponent();
+    if(SceneComponent == NULL) return NULL;
+    auto PrimitiveComponent = Cast<UPrimitiveComponent>(SceneComponent);
+    if (PrimitiveComponent == NULL) return NULL;
+    FBodyInstance* BodyInst = PrimitiveComponent->GetBodyInstance();
+    return BodyInst;
 }
 
 /**
@@ -528,127 +543,127 @@ FBodyInstance* GetBodyInstance(AActor* Actor) {
  */
 extern "C" bool CaptureOpticalFlow(UObject* _this, const IntSize* size, void* flow_data, void* rgb_data, float maxFlow, int stride, bool verbose)
 {
-	FViewport* Viewport = nullptr;
-	APlayerController* PlayerController = nullptr;
-	UWorld* World = nullptr;
-	FSceneView* SceneView = nullptr;
+    FViewport* Viewport = nullptr;
+    APlayerController* PlayerController = nullptr;
+    UWorld* World = nullptr;
+    FSceneView* SceneView = nullptr;
 
-	bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
-	if(!bOk) {
-		return false;
-	}
+    bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
+    if(!bOk) {
+        return false;
+    }
 
-	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(_this, 0);
-	if(PlayerCharacter == NULL) {
-		printf("PlayerCharacter null\n");
-		return false;
-	}
+    ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(_this, 0);
+    if(PlayerCharacter == NULL) {
+        printf("PlayerCharacter null\n");
+        return false;
+    }
 
-	float HitResultTraceDistance = 100000.f;
+    float HitResultTraceDistance = 100000.f;
 
-	// 1. Get player/camera info
-	FVector PlayerLoc  = PlayerCharacter->GetActorLocation();
-	FRotator PlayerRot = PlayerController->GetControlRotation();
-	FVector PlayerVel = PlayerCharacter->GetVelocity();
-	FRotationMatrix PlayerRotMat(PlayerRot);
+    // 1. Get player/camera info
+    FVector PlayerLoc  = PlayerCharacter->GetActorLocation();
+    FRotator PlayerRot = PlayerController->GetControlRotation();
+    FVector PlayerVel = PlayerCharacter->GetVelocity();
+    FRotationMatrix PlayerRotMat(PlayerRot);
 
-	FVector PlayerF = PlayerRotMat.GetScaledAxis( EAxis::X );
-	PlayerF.Normalize();
+    FVector PlayerF = PlayerRotMat.GetScaledAxis( EAxis::X );
+    PlayerF.Normalize();
 
-	FBodyInstance* PlayerBodyInst = GetBodyInstance(PlayerCharacter);
-	PlayerBodyInst->SetAngularVelocity(FVector(0,0,0), false); // FIXME
+    FBodyInstance* PlayerBodyInst = GetBodyInstance(PlayerCharacter);
+    PlayerBodyInst->SetAngularVelocity(FVector(0,0,0), false); // FIXME
 
-	// 2. Iterate over pixels
-	ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility; // FIXME?
-	bool bTraceComplex = false; // FIXME?
-	FHitResult HitResult;
-	float* flow_values = (float*) flow_data;
-	float* rgb_values  = (float*) rgb_data;
-	FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
-	for (int y = 0; y < size->Y; y+=stride) {
-		for (int x = 0; x < size->X; x+=stride) {
+    // 2. Iterate over pixels
+    ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility; // FIXME?
+    bool bTraceComplex = false; // FIXME?
+    FHitResult HitResult;
+    float* flow_values = (float*) flow_data;
+    float* rgb_values  = (float*) rgb_data;
+    FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
+    for (int y = 0; y < size->Y; y+=stride) {
+        for (int x = 0; x < size->X; x+=stride) {
 
-			FVector2D ScreenPosition(x, y);
+            FVector2D ScreenPosition(x, y);
 
 
-			FVector WorldOrigin, WorldDirection;
-			FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
+            FVector WorldOrigin, WorldDirection;
+            FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
 
-			// 3. Calculate dPixel / dScreen, i.e. the pixel movement resulting from a movement in camera near plane
-			FVector ScreenDx = getDPixelDScreen(ScreenPosition, 0, SceneView);
-			FVector ScreenDy = getDPixelDScreen(ScreenPosition, 1, SceneView);
+            // 3. Calculate dPixel / dScreen, i.e. the pixel movement resulting from a movement in camera near plane
+            FVector ScreenDx = getDPixelDScreen(ScreenPosition, 0, SceneView);
+            FVector ScreenDy = getDPixelDScreen(ScreenPosition, 1, SceneView);
 
-			// 4. Cast ray from pixel to find intersecting object
-			bool bHit = World->LineTraceSingleByChannel(
-				HitResult,
-				WorldOrigin,
-				WorldOrigin + WorldDirection * HitResultTraceDistance,
-				TraceChannel,
-				CollisionQueryParams);
+            // 4. Cast ray from pixel to find intersecting object
+            bool bHit = World->LineTraceSingleByChannel(
+                                                        HitResult,
+                                                        WorldOrigin,
+                                                        WorldOrigin + WorldDirection * HitResultTraceDistance,
+                                                        TraceChannel,
+                                                        CollisionQueryParams);
 
-			AActor* Actor = NULL;
-			FVector CamVel, PointVel, Flow;
+            AActor* Actor = NULL;
+            FVector CamVel, PointVel, Flow;
 
-			if(bHit) {
-				// 5. Get the location and velocity of the camera and the hit object
-				const auto &HitLoc = HitResult.Location;
-				Actor = HitResult.GetActor();
-				FBodyInstance* ActorBodyInst = GetBodyInstance(Actor);
-				if(ActorBodyInst != NULL)
-				{
-					PointVel = ActorBodyInst->GetUnrealWorldVelocityAtPoint(HitLoc);
-				} else {
-					printf("BodyInst null\n");
-					PointVel = Actor->GetVelocity();
-				}
-				CamVel = PlayerBodyInst->GetUnrealWorldVelocityAtPoint(HitLoc);
-				FVector RelVel = PointVel - CamVel;
+            if(bHit) {
+                // 5. Get the location and velocity of the camera and the hit object
+                const auto &HitLoc = HitResult.Location;
+                Actor = HitResult.GetActor();
+                FBodyInstance* ActorBodyInst = GetBodyInstance(Actor);
+                if(ActorBodyInst != NULL)
+                {
+                    PointVel = ActorBodyInst->GetUnrealWorldVelocityAtPoint(HitLoc);
+                } else {
+                    printf("BodyInst null\n");
+                    PointVel = Actor->GetVelocity();
+                }
+                CamVel = PlayerBodyInst->GetUnrealWorldVelocityAtPoint(HitLoc);
+                FVector RelVel = PointVel - CamVel;
 
-				// 6. calculate the optical flow
-				FVector HitLocRel = HitLoc - PlayerLoc;
-				float DistToHit = FVector::DotProduct(HitLoc - PlayerLoc, PlayerF);
-				FVector RelVelInCameraPlane = (RelVel - RelVel.ProjectOnTo(PlayerF)) / DistToHit;
-				Flow.X = FVector::DotProduct(RelVelInCameraPlane, ScreenDx);
-				Flow.Y = FVector::DotProduct(RelVelInCameraPlane, ScreenDy);
-			} else {
-				Flow.X  = 0;
-				Flow.Y  = 0;
-			}
+                // 6. calculate the optical flow
+                FVector HitLocRel = HitLoc - PlayerLoc;
+                float DistToHit = FVector::DotProduct(HitLoc - PlayerLoc, PlayerF);
+                FVector RelVelInCameraPlane = (RelVel - RelVel.ProjectOnTo(PlayerF)) / DistToHit;
+                Flow.X = FVector::DotProduct(RelVelInCameraPlane, ScreenDx);
+                Flow.Y = FVector::DotProduct(RelVelInCameraPlane, ScreenDy);
+            } else {
+                Flow.X  = 0;
+                Flow.Y  = 0;
+            }
 
-			*flow_values++ = Flow.X;
-			*flow_values++ = Flow.Y;
+            *flow_values++ = Flow.X;
+            *flow_values++ = Flow.Y;
 
-			// 7. Convert flow to RGB optical flow
+            // 7. Convert flow to RGB optical flow
 
-			FVector PolarFlow;
-			FMath::CartesianToPolar(Flow.X, Flow.Y, PolarFlow.X, PolarFlow.Y);
-			float Hue = FMath::RadiansToDegrees(PolarFlow.Y);
-			if(Hue < 0) Hue = Hue + 360.f;
-			float Sat = FMath::Clamp(PolarFlow.X / maxFlow, 0.f, 1.f);
+            FVector PolarFlow;
+            FMath::CartesianToPolar(Flow.X, Flow.Y, PolarFlow.X, PolarFlow.Y);
+            float Hue = FMath::RadiansToDegrees(PolarFlow.Y);
+            if(Hue < 0) Hue = Hue + 360.f;
+            float Sat = FMath::Clamp(PolarFlow.X / maxFlow, 0.f, 1.f);
 
-			FLinearColor HSV(Hue, Sat, 1);
-			auto color = HSV.HSVToLinearRGB();
+            FLinearColor HSV(Hue, Sat, 1);
+            auto color = HSV.HSVToLinearRGB();
 
-			*rgb_values++ = color.R;
-			*rgb_values++ = color.G;
-			*rgb_values++ = color.B;
+            *rgb_values++ = color.R;
+            *rgb_values++ = color.G;
+            *rgb_values++ = color.B;
 
-			if(verbose) {
-				printf("(%d, %d) PlayerRot: (%g, %g, %g) PointVel: (%g, %g, %g), CamVel: (%g, %g, %g) ScreenDx: (%g, %g, %g) ScreenDy: (%g, %g, %g) Flow: (%g, %g) PolarFlow: (%g, %g) HSV: (%g, %g, %g) RGB: (%g, %g, %g)\n",
-					x, y,
-					PlayerRot.Pitch, PlayerRot.Yaw, PlayerRot.Roll,
-					PointVel.X, PointVel.Y, PointVel.Z,
-					CamVel.X, CamVel.Y, CamVel.Z,
-					ScreenDx.X, ScreenDx.Y, ScreenDx.Z,
-					ScreenDy.X, ScreenDy.Y, ScreenDy.Z,
-					Flow.X, Flow.Y,
-					PolarFlow.X, PolarFlow.Y,
-					HSV.R, HSV.G, HSV.B,
-					color.R, color.G, color.B);
-			}
-		}
-	}
-	return true;
+            if(verbose) {
+                printf("(%d, %d) PlayerRot: (%g, %g, %g) PointVel: (%g, %g, %g), CamVel: (%g, %g, %g) ScreenDx: (%g, %g, %g) ScreenDy: (%g, %g, %g) Flow: (%g, %g) PolarFlow: (%g, %g) HSV: (%g, %g, %g) RGB: (%g, %g, %g)\n",
+                       x, y,
+                       PlayerRot.Pitch, PlayerRot.Yaw, PlayerRot.Roll,
+                       PointVel.X, PointVel.Y, PointVel.Z,
+                       CamVel.X, CamVel.Y, CamVel.Z,
+                       ScreenDx.X, ScreenDx.Y, ScreenDx.Z,
+                       ScreenDy.X, ScreenDy.Y, ScreenDy.Z,
+                       Flow.X, Flow.Y,
+                       PolarFlow.X, PolarFlow.Y,
+                       HSV.R, HSV.G, HSV.B,
+                       color.R, color.G, color.B);
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -661,70 +676,78 @@ extern "C" bool CaptureOpticalFlow(UObject* _this, const IntSize* size, void* fl
  *             This array is filled with depth information.
  * @param stride stride in pixels at which to compute the optical flow.
  * @param verbose verbose output
+ * @param ignoredObjects array of nIgnoredObjects Actor* pointers
+ *                       which will be ignored during depth field computation.
+ * @param nIgnored Objects size of the ignoredObjects array
  * @returns true if the optical flow capture was successful
  */
-extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose)
+extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose, const AActor** ignoredObjects, int nIgnoredObjects)
 {
-	FViewport* Viewport = nullptr;
-	APlayerController* PlayerController = nullptr;
-	UWorld* World = nullptr;
-	FSceneView* SceneView = nullptr;
+    FViewport* Viewport = nullptr;
+    APlayerController* PlayerController = nullptr;
+    UWorld* World = nullptr;
+    FSceneView* SceneView = nullptr;
 
-	bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
-	if(!bOk) {
-		return false;
-	}
+    bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
+    if(!bOk) {
+        return false;
+    }
 
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
 
-	float HitResultTraceDistance = 100000.f;
+    float HitResultTraceDistance = 100000.f;
 
-	FVector PlayerLoc  = object->GetActorLocation();
-	FRotator PlayerRot = object->GetActorRotation();
-	FRotationMatrix PlayerRotMat(PlayerRot);
+    FVector PlayerLoc  = object->GetActorLocation();
+    FRotator PlayerRot = object->GetActorRotation();
+    FRotationMatrix PlayerRotMat(PlayerRot);
 
-	FVector PlayerF = PlayerRotMat.GetScaledAxis( EAxis::X );
-	PlayerF.Normalize();
+    FVector PlayerF = PlayerRotMat.GetScaledAxis( EAxis::X );
+    PlayerF.Normalize();
 
-	ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility; // FIXME?
-	bool bTraceComplex = false; // FIXME?
-	FHitResult HitResult;
-	float* values = (float*) data;
-	FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
-	for (int y = 0; y < size->Y; y+=stride) {
-		for (int x = 0; x < size->X; x+=stride) {
+    ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility; // FIXME?
+    bool bTraceComplex = false; // FIXME?
+    FHitResult HitResult;
+    float* values = (float*) data;
 
-			FVector2D ScreenPosition(x, y);
+    FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
+    for (int i = 0; i < nIgnoredObjects; i++) {
+        CollisionQueryParams.AddIgnoredActor(ignoredObjects[i]);
+    }
 
-			FVector WorldOrigin, WorldDirection;
-			FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
+    for (int y = 0; y < size->Y; y+=stride) {
+        for (int x = 0; x < size->X; x+=stride) {
 
-			bool bHit = World->LineTraceSingleByChannel(
-				HitResult,
-				WorldOrigin,
-				WorldOrigin + WorldDirection * HitResultTraceDistance,
-				TraceChannel,
-				CollisionQueryParams);
+            FVector2D ScreenPosition(x, y);
 
-			AActor* Actor = NULL;
-			FVector CamVel, PointVel, Flow;
+            FVector WorldOrigin, WorldDirection;
+            FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
 
-			if(bHit) {
-				const auto &HitLoc = HitResult.Location;
-				Actor = HitResult.GetActor();
+            bool bHit = World->LineTraceSingleByChannel(
+                                                        HitResult,
+                                                        WorldOrigin,
+                                                        WorldOrigin + WorldDirection * HitResultTraceDistance,
+                                                        TraceChannel,
+                                                        CollisionQueryParams);
 
-				FVector HitLocRel = HitLoc - PlayerLoc;
-				float DistToHit = FVector::DotProduct(HitLoc - PlayerLoc, PlayerF);
-				*values++ = DistToHit;
-			} else {
-				*values++ = 0;
-			}
-		}
-	}
-	return true;
+            AActor* Actor = NULL;
+            FVector CamVel, PointVel, Flow;
+
+            if(bHit) {
+                const auto &HitLoc = HitResult.Location;
+                Actor = HitResult.GetActor();
+
+                FVector HitLocRel = HitLoc - PlayerLoc;
+                float DistToHit = FVector::DotProduct(HitLoc - PlayerLoc, PlayerF);
+                *values++ = DistToHit;
+            } else {
+                *values++ = 0;
+            }
+        }
+    }
+    return true;
 }
 
 /**
@@ -732,227 +755,227 @@ extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize*
  */
 
 extern "C" bool GetActorLocation(AActor* object, float* x, float* y, float* z) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	FVector actorLoc = object->GetActorLocation();
-	*x = actorLoc.X;
-	*y = actorLoc.Y;
-	*z = actorLoc.Z;
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    FVector actorLoc = object->GetActorLocation();
+    *x = actorLoc.X;
+    *y = actorLoc.Y;
+    *z = actorLoc.Z;
+    return true;
 }
 
 extern "C" bool GetActorRotation(AActor* object, float* pitch, float* yaw, float* roll) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	FRotator actorRot = object->GetActorRotation();
-	*pitch = actorRot.Pitch;
-	*yaw = actorRot.Yaw;
-	*roll = actorRot.Roll;
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    FRotator actorRot = object->GetActorRotation();
+    *pitch = actorRot.Pitch;
+    *yaw = actorRot.Yaw;
+    *roll = actorRot.Roll;
+    return true;
 }
 
 extern "C" bool GetActorVisible(AActor* object, bool* visible) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	*visible = object->bHidden;
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    *visible = object->bHidden;
+    return true;
 }
 
 UStaticMeshComponent* GetActorMeshComponent(AActor* object) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return NULL;
-	}
-	UStaticMeshComponent* component = object->FindComponentByClass<UStaticMeshComponent>();
-	if(component == NULL) {
-		printf("Object doesn't have an UStaticMeshComponent\n");
-		return NULL;
-	}
-	return component;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return NULL;
+    }
+    UStaticMeshComponent* component = object->FindComponentByClass<UStaticMeshComponent>();
+    if(component == NULL) {
+        printf("Object doesn't have an UStaticMeshComponent\n");
+        return NULL;
+    }
+    return component;
 }
 
 extern "C" bool GetActorVelocity(AActor* object, float* x, float* y, float* z) {
-	UStaticMeshComponent* component = GetActorMeshComponent(object);
-	if(component == NULL) return false;
-	FVector actorLinVel = component->GetPhysicsLinearVelocity();
-	return true;
+    UStaticMeshComponent* component = GetActorMeshComponent(object);
+    if(component == NULL) return false;
+    FVector actorLinVel = component->GetPhysicsLinearVelocity();
+    return true;
 }
 
 extern "C" bool GetActorAngularVelocity(AActor* object, float* x, float* y, float* z) {
-	UStaticMeshComponent* component = GetActorMeshComponent(object);
-	if(component == NULL) return false;
-	FVector actorAngVel = component->GetPhysicsAngularVelocity();
-	*x = actorAngVel.X;
-	*y = actorAngVel.Y;
-	*z = actorAngVel.Z;
-	return true;
+    UStaticMeshComponent* component = GetActorMeshComponent(object);
+    if(component == NULL) return false;
+    FVector actorAngVel = component->GetPhysicsAngularVelocity();
+    *x = actorAngVel.X;
+    *y = actorAngVel.Y;
+    *z = actorAngVel.Z;
+    return true;
 }
 
 extern "C" bool GetActorScale3D(AActor* object, float* x, float* y, float* z) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	FVector actorScale = object->GetActorScale3D();
-	*x = actorScale.X;
-	*y = actorScale.Y;
-	*z = actorScale.Z;
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    FVector actorScale = object->GetActorScale3D();
+    *x = actorScale.X;
+    *y = actorScale.Y;
+    *z = actorScale.Z;
+    return true;
 }
 
 extern "C" bool GetActorBounds(AActor* object, float* x, float* y, float* z, float* boxX, float* boxY, float* boxZ) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	FVector Origin,BoxExtent;
-	object->GetActorBounds(false, Origin, BoxExtent);
-	*x = Origin.X;
-	*y = Origin.Y;
-	*z = Origin.Z;
-	*boxX = BoxExtent.X;
-	*boxY = BoxExtent.Y;
-	*boxZ = BoxExtent.Z;
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    FVector Origin,BoxExtent;
+    object->GetActorBounds(false, Origin, BoxExtent);
+    *x = Origin.X;
+    *y = Origin.Y;
+    *z = Origin.Z;
+    *boxX = BoxExtent.X;
+    *boxY = BoxExtent.Y;
+    *boxZ = BoxExtent.Z;
+    return true;
 }
 
 extern "C" bool GetActorForwardVector(AActor* object, float* x, float* y, float* z) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	FVector ForwardVector = object->GetActorForwardVector();
-	*x = ForwardVector.X;
-	*y = ForwardVector.Y;
-	*z = ForwardVector.Z;
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    FVector ForwardVector = object->GetActorForwardVector();
+    *x = ForwardVector.X;
+    *y = ForwardVector.Y;
+    *z = ForwardVector.Z;
+    return true;
 }
 
 extern "C" bool SetActorLocation(AActor* object, float x, float y, float z) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	return object->SetActorLocation(FVector(x,y,z), false);
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    return object->SetActorLocation(FVector(x,y,z), false);
 }
 
 extern "C" bool SetActorRotation(AActor* object, float pitch, float yaw, float roll) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	return object->SetActorRotation(FRotator(pitch,yaw,roll));
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    return object->SetActorRotation(FRotator(pitch,yaw,roll));
 }
 
 extern "C" bool SetActorLocationAndRotation(AActor* object, float x, float y, float z, float pitch, float yaw, float roll) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	return object->SetActorLocationAndRotation(FVector(x,y,z), FRotator(pitch,yaw,roll), false);
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    return object->SetActorLocationAndRotation(FVector(x,y,z), FRotator(pitch,yaw,roll), false);
 }
 
 extern "C" bool SetActorVisible(AActor* object, bool visible) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	object->SetActorHiddenInGame(!visible);
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    object->SetActorHiddenInGame(!visible);
+    return true;
 }
 
 extern "C" bool SetActorVelocity(AActor* object, float x, float y, float z) {
-	UStaticMeshComponent* component = GetActorMeshComponent(object);
-	if(component == NULL) return false;
-	FBodyInstance* BodyInst = GetBodyInstance(object);
-	if(BodyInst == NULL) {
-		printf("BodyInstance is null\n");
-		return false;
-	}
-	if(!BodyInst->bSimulatePhysics) {
-		printf("Simulate physics isn't enabled\n");
-		return false;
-	}
-	component->SetPhysicsLinearVelocity(FVector(x,y,z));
-	return true;
+    UStaticMeshComponent* component = GetActorMeshComponent(object);
+    if(component == NULL) return false;
+    FBodyInstance* BodyInst = GetBodyInstance(object);
+    if(BodyInst == NULL) {
+        printf("BodyInstance is null\n");
+        return false;
+    }
+    if(!BodyInst->bSimulatePhysics) {
+        printf("Simulate physics isn't enabled\n");
+        return false;
+    }
+    component->SetPhysicsLinearVelocity(FVector(x,y,z));
+    return true;
 }
 
 extern "C" bool SetActorAngularVelocity(AActor* object, float x, float y, float z) {
-	UStaticMeshComponent* component = GetActorMeshComponent(object);
-	if(component == NULL) return false;
-	FBodyInstance* BodyInst = GetBodyInstance(object);
-	if(BodyInst == NULL) {
-		printf("BodyInstance is null\n");
-		return false;
-	}
-	if(!BodyInst->bSimulatePhysics) {
-		printf("Simulate physics isn't enabled\n");
-		return false;
-	}
-	component->SetPhysicsAngularVelocity(FVector(x,y,z));
-	return true;
+    UStaticMeshComponent* component = GetActorMeshComponent(object);
+    if(component == NULL) return false;
+    FBodyInstance* BodyInst = GetBodyInstance(object);
+    if(BodyInst == NULL) {
+        printf("BodyInstance is null\n");
+        return false;
+    }
+    if(!BodyInst->bSimulatePhysics) {
+        printf("Simulate physics isn't enabled\n");
+        return false;
+    }
+    component->SetPhysicsAngularVelocity(FVector(x,y,z));
+    return true;
 }
 
 extern "C" bool SetActorScale3D(AActor* object, float x, float y, float z) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	object->SetActorScale3D(FVector(x,y,z));
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    object->SetActorScale3D(FVector(x,y,z));
+    return true;
 }
 
 extern "C" bool SetMaterial(AActor* object, UMaterial* material) {
-	UStaticMeshComponent* component = GetActorMeshComponent(object);
-	if(component == NULL) return false;
-	if(!material) {
-		printf("Material doesn't exist\n");
-		return false;
-	}
-	component->SetMaterial(0, material);
-	return true;
+    UStaticMeshComponent* component = GetActorMeshComponent(object);
+    if(component == NULL) return false;
+    if(!material) {
+        printf("Material doesn't exist\n");
+        return false;
+    }
+    component->SetMaterial(0, material);
+    return true;
 }
 
 extern "C" bool AddForce(AActor* object, float x, float y, float z) {
-	UStaticMeshComponent* component = GetActorMeshComponent(object);
-	if(component == NULL) return false;
-	FBodyInstance* BodyInst = GetBodyInstance(object);
-	if(BodyInst == NULL) {
-		printf("BodyInstance is null\n");
-		return false;
-	}
-	if(!BodyInst->bSimulatePhysics) {
-		printf("Simulate physics isn't enabled\n");
-		return false;
-	}
-	component->AddForce(FVector(x,y,z));
-	return true;
+    UStaticMeshComponent* component = GetActorMeshComponent(object);
+    if(component == NULL) return false;
+    FBodyInstance* BodyInst = GetBodyInstance(object);
+    if(BodyInst == NULL) {
+        printf("BodyInstance is null\n");
+        return false;
+    }
+    if(!BodyInst->bSimulatePhysics) {
+        printf("Simulate physics isn't enabled\n");
+        return false;
+    }
+    component->AddForce(FVector(x,y,z));
+    return true;
 }
 
 extern "C" bool SetResolution(int x, int y) {
-	if(GEngine && GEngine->GameViewport && GEngine->GameViewport->ViewportFrame) {
-		int32 WindowModeInt = GSystemResolution.WindowMode;
-		EWindowMode::Type WindowMode = EWindowMode::ConvertIntToWindowMode(WindowModeInt);
-		GEngine->GameViewport->ViewportFrame->ResizeFrame(x, y, WindowMode);
-		return true;
-	} else {
-		return false;
-	}
+    if(GEngine && GEngine->GameViewport && GEngine->GameViewport->ViewportFrame) {
+        int32 WindowModeInt = GSystemResolution.WindowMode;
+        EWindowMode::Type WindowMode = EWindowMode::ConvertIntToWindowMode(WindowModeInt);
+        GEngine->GameViewport->ViewportFrame->ResizeFrame(x, y, WindowMode);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 extern "C" bool DestroyActor(AActor* object) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	object->K2_DestroyActor();
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    object->K2_DestroyActor();
+    return true;
 }
 
 /**
@@ -960,61 +983,61 @@ extern "C" bool DestroyActor(AActor* object) {
  */
 
 extern "C" bool SimpleMoveToLocation(UObject* _this, AActor* object, float x, float y, float z) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	APawn* Pawn = Cast<APawn>(object);
-	if(Pawn == NULL) {
-		printf("Object is not a pawn\n");
-		return false;
-	}
-	UWorld* World = GEngine->GetWorldFromContextObject(_this);
-	if(World == NULL) {
-		printf("World is null\n");
-		return false;
-	}
-	UNavigationSystem* NavSys = World->GetNavigationSystem();
-	if(NavSys == NULL) {
-		printf("Navigation system is null\n");
-		return false;
-	}
-	AController* Controller = Pawn->GetController();
-	if(Controller == NULL) {
-		printf("Controller is null\n");
-		return false;
-	}
-	NavSys->SimpleMoveToLocation(Controller, FVector(x,y,z));
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    APawn* Pawn = Cast<APawn>(object);
+    if(Pawn == NULL) {
+        printf("Object is not a pawn\n");
+        return false;
+    }
+    UWorld* World = GEngine->GetWorldFromContextObject(_this);
+    if(World == NULL) {
+        printf("World is null\n");
+        return false;
+    }
+    UNavigationSystem* NavSys = World->GetNavigationSystem();
+    if(NavSys == NULL) {
+        printf("Navigation system is null\n");
+        return false;
+    }
+    AController* Controller = Pawn->GetController();
+    if(Controller == NULL) {
+        printf("Controller is null\n");
+        return false;
+    }
+    NavSys->SimpleMoveToLocation(Controller, FVector(x,y,z));
+    return true;
 }
 
 extern "C" bool SimpleMoveToActor(UObject* _this, AActor* object, AActor* goal) {
-	if(object == NULL) {
-		printf("Object is null\n");
-		return false;
-	}
-	APawn* Pawn = Cast<APawn>(object);
-	if(Pawn == NULL) {
-		printf("Object is not a pawn\n");
-		return false;
-	}
-	UWorld* World = GEngine->GetWorldFromContextObject(_this);
-	if(World == NULL) {
-		printf("World is null\n");
-		return false;
-	}
-	UNavigationSystem* NavSys = World->GetNavigationSystem();
-	if(NavSys == NULL) {
-		printf("Navigation system is null\n");
-		return false;
-	}
-	AController* Controller = Pawn->GetController();
-	if(Controller == NULL) {
-		printf("Controller is null\n");
-		return false;
-	}
-	NavSys->SimpleMoveToActor(Controller, goal);
-	return true;
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+    APawn* Pawn = Cast<APawn>(object);
+    if(Pawn == NULL) {
+        printf("Object is not a pawn\n");
+        return false;
+    }
+    UWorld* World = GEngine->GetWorldFromContextObject(_this);
+    if(World == NULL) {
+        printf("World is null\n");
+        return false;
+    }
+    UNavigationSystem* NavSys = World->GetNavigationSystem();
+    if(NavSys == NULL) {
+        printf("Navigation system is null\n");
+        return false;
+    }
+    AController* Controller = Pawn->GetController();
+    if(Controller == NULL) {
+        printf("Controller is null\n");
+        return false;
+    }
+    NavSys->SimpleMoveToActor(Controller, goal);
+    return true;
 }
 
 /**
@@ -1022,58 +1045,58 @@ extern "C" bool SimpleMoveToActor(UObject* _this, AActor* object, AActor* goal) 
  */
 
 extern "C" bool GrabComponent(UPhysicsHandleComponent* HandleComponent, UPrimitiveComponent* target, FName* InBoneName, float x, float y, float z) {
-	if(HandleComponent == NULL) {
-		printf("HandleComponent is null\n");
-		return false;
-	}
-	if(target == NULL) {
-		printf("target is null\n");
-		return false;
-	}
-	if(InBoneName == NULL) {
-		printf("InBoneName is null\n");
-		return false;
-	}
-	HandleComponent->GrabComponent(target, *InBoneName, FVector(x,y,z), true);
-	return true;
+    if(HandleComponent == NULL) {
+        printf("HandleComponent is null\n");
+        return false;
+    }
+    if(target == NULL) {
+        printf("target is null\n");
+        return false;
+    }
+    if(InBoneName == NULL) {
+        printf("InBoneName is null\n");
+        return false;
+    }
+    HandleComponent->GrabComponent(target, *InBoneName, FVector(x,y,z), true);
+    return true;
 }
 
 extern "C" bool ReleaseComponent(UPhysicsHandleComponent* HandleComponent) {
-	if(HandleComponent == NULL) {
-		printf("HandleComponent is null\n");
-		return false;
-	}
-	HandleComponent->ReleaseComponent();
-	return true;
+    if(HandleComponent == NULL) {
+        printf("HandleComponent is null\n");
+        return false;
+    }
+    HandleComponent->ReleaseComponent();
+    return true;
 }
 
 extern "C" bool SetTargetLocation(UPhysicsHandleComponent* HandleComponent, float x, float y, float z) {
-	if(HandleComponent == NULL) {
-		printf("HandleComponent is null\n");
-		return false;
-	}
-	HandleComponent->SetTargetLocation(FVector(x,y,z));
-	return true;
+    if(HandleComponent == NULL) {
+        printf("HandleComponent is null\n");
+        return false;
+    }
+    HandleComponent->SetTargetLocation(FVector(x,y,z));
+    return true;
 }
 
 extern "C" bool WakeRigidBody(UPrimitiveComponent* component) {
-	if(component == NULL) {
-		printf("component is null\n");
-		return false;
-	}
-	component->WakeRigidBody(NAME_None);
-	return true;
+    if(component == NULL) {
+        printf("component is null\n");
+        return false;
+    }
+    component->WakeRigidBody(NAME_None);
+    return true;
 }
 
 extern "C" bool IgnoreCollisionWithPawn(UPrimitiveComponent* component) {
-	if(component == NULL) {
-		printf("component is null\n");
-		return false;
-	}
-	component->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	return true;
+    if(component == NULL) {
+        printf("component is null\n");
+        return false;
+    }
+    component->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+    return true;
 }
 
 extern "C" void ExecuteConsoleCommand(UObject* _this, char* command) {
-	UKismetSystemLibrary::ExecuteConsoleCommand(_this, command, NULL);
+    UKismetSystemLibrary::ExecuteConsoleCommand(_this, command, NULL);
 }
