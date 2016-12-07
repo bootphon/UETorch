@@ -369,21 +369,27 @@ extern "C" bool CaptureSegmentation(UObject* _this, const IntSize* size,
         }
     }
 
-    // Iterate over pixels
+
     FCollisionQueryParams CollisionQueryParams( "ClickableTrace", bTraceComplex );
     for (int i = 0; i < nIgnoredObjects; i++) {
         CollisionQueryParams.AddIgnoredActor(ignoredObjects[i]);
     }
 
+    // Iterate over pixels
     for (int y = 0; y < size->Y; y+=stride) {
         for (int x = 0; x < size->X; x+=stride) {
 
             FVector2D ScreenPosition(x, y);
             FVector WorldOrigin, WorldDirection;
             FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
+
             // Cast ray from pixel to find intersecting object
-            bool bHit = World->LineTraceSingleByChannel(HitResult, WorldOrigin, WorldOrigin + WorldDirection * HitResultTraceDistance, TraceChannel, CollisionQueryParams);
-            if (verbose) printf("E\n");
+            bool bHit = World->LineTraceSingleByChannel(HitResult,
+                                                        WorldOrigin,
+                                                        WorldOrigin + WorldDirection * HitResultTraceDistance,
+                                                        TraceChannel,
+                                                        CollisionQueryParams);
+
             AActor* Actor = NULL;
             *seg_values = 0; // no foreground object
             if(bHit) {
@@ -681,7 +687,9 @@ extern "C" bool CaptureOpticalFlow(UObject* _this, const IntSize* size, void* fl
  * @param nIgnored Objects size of the ignoredObjects array
  * @returns true if the optical flow capture was successful
  */
-extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size, void* data, int stride, bool verbose, const AActor** ignoredObjects, int nIgnoredObjects)
+extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize* size,
+                                  void* data, int stride, bool verbose,
+                                  const AActor** ignoredObjects, int nIgnoredObjects)
 {
     FViewport* Viewport = nullptr;
     APlayerController* PlayerController = nullptr;
@@ -721,19 +729,17 @@ extern "C" bool CaptureDepthField(UObject* _this, AActor* object, const IntSize*
         for (int x = 0; x < size->X; x+=stride) {
 
             FVector2D ScreenPosition(x, y);
-
             FVector WorldOrigin, WorldDirection;
             FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
 
-            bool bHit = World->LineTraceSingleByChannel(
-                                                        HitResult,
+            bool bHit = World->LineTraceSingleByChannel(HitResult,
                                                         WorldOrigin,
                                                         WorldOrigin + WorldDirection * HitResultTraceDistance,
                                                         TraceChannel,
                                                         CollisionQueryParams);
 
             AActor* Actor = NULL;
-            FVector CamVel, PointVel, Flow;
+            //FVector CamVel, PointVel, Flow;
 
             if(bHit) {
                 const auto &HitLoc = HitResult.Location;
@@ -1099,4 +1105,122 @@ extern "C" bool IgnoreCollisionWithPawn(UPrimitiveComponent* component) {
 
 extern "C" void ExecuteConsoleCommand(UObject* _this, char* command) {
     UKismetSystemLibrary::ExecuteConsoleCommand(_this, command, NULL);
+}
+
+/**
+ * Calculate depth field and object segmentation masks in one
+ * shot. This method is basically the merge of CaptureSegmentation and
+ * CaptureDepthField in a single for loop.
+ *
+ * @param _this the TorchPlugincomponent
+ * @param size the size of the viewport
+ * @param stride the stride in pixels at which to compute data
+ * @param origin the actor looking at the scene (basically the camera)
+ * @param verbose a verbose flag for debug
+ * @param objects array of nObjects Actor* pointers which will be
+ *                recorded in the segmentation mask (depth takes all
+ *                actors)
+ * @param nObjects size of the objects array
+ * @param ignoredObjects array of nIgnoredObjects Actor* pointers
+ *                       which will be ignored during segmentation and depth.
+ * @param nIgnored Objects size of the ignoredObjects array
+ * @param depth_data a float array of size->Y/stride * size->X/stride
+ *                   This array is filled with depth information.
+ * @param mask_data a float array of size->Y/stride * size->X/stride
+ *                  This array is filled with segmentation information.
+ *
+ * @returns true if the capture was successful, false otherwise
+ */
+extern "C" bool CaptureDepthAndMasks(
+    UObject* _this, const IntSize* size, int stride, AActor* origin, bool verbose,
+    const AActor** objects, int nObjects,
+    const AActor** ignoredObjects, int nIgnoredObjects,
+    void* depth_data, void* mask_data)
+{
+    FViewport* Viewport = nullptr;
+    APlayerController* PlayerController = nullptr;
+    UWorld* World = nullptr;
+    FSceneView* SceneView = nullptr;
+
+    bool bOk = InitCapture(_this, size, &Viewport, &PlayerController, &World, &SceneView);
+    if(!bOk) {
+        return false;
+    }
+
+    float HitResultTraceDistance = 100000.f;
+
+    if(origin == NULL) {
+        printf("Origin is null\n");
+        return false;
+    }
+
+    FVector PlayerLoc  = origin->GetActorLocation();
+    FRotator PlayerRot = origin->GetActorRotation();
+    FRotationMatrix PlayerRotMat(PlayerRot);
+    FVector PlayerF = PlayerRotMat.GetScaledAxis(EAxis::X);
+    PlayerF.Normalize();
+
+    ECollisionChannel TraceChannel = ECollisionChannel::ECC_Visibility;
+    bool bTraceComplex = false;
+    FHitResult HitResult;
+
+    int* mask_values = (int*) mask_data;
+    float* depth_values = (float*) depth_data;
+
+    if(verbose) {
+        for(int i = 0; i < nObjects; i++) {
+            printf("Object %d: %p\n", i, objects[i]);
+        }
+    }
+
+    FCollisionQueryParams CollisionQueryParams("ClickableTrace", bTraceComplex);
+    for (int i = 0; i < nIgnoredObjects; i++) {
+        CollisionQueryParams.AddIgnoredActor(ignoredObjects[i]);
+    }
+
+    // Iterate over pixels
+    for (int y = 0; y < size->Y; y+=stride) {
+        for (int x = 0; x < size->X; x+=stride) {
+            FVector2D ScreenPosition(x, y);
+            FVector WorldOrigin, WorldDirection;
+            FSceneView__SafeDeprojectFVector2D(SceneView, ScreenPosition, WorldOrigin, WorldDirection);
+
+            bool bHit = World->LineTraceSingleByChannel(
+                HitResult,
+                WorldOrigin,
+                WorldOrigin + WorldDirection * HitResultTraceDistance,
+                TraceChannel,
+                CollisionQueryParams);
+
+            AActor* Actor = NULL;
+            *mask_values = 0; // no foreground object
+            *depth_values = 0;
+
+            if(bHit) {
+                // depth part
+                const auto &HitLoc = HitResult.Location;
+                Actor = HitResult.GetActor();
+
+                FVector HitLocRel = HitLoc - PlayerLoc;
+                float DistToHit = FVector::DotProduct(HitLoc - PlayerLoc, PlayerF);
+                *depth_values = DistToHit;
+
+                // mask part
+                if(Actor != NULL)
+                {
+                    for (int i = 0; i < nObjects; i++) {
+                        if (objects[i] == Actor) {
+                            *mask_values = i+1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            mask_values++;
+            depth_values++;
+        }
+    }
+
+    return true;
 }

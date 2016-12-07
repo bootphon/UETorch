@@ -73,6 +73,8 @@ bool ReleaseComponent(UPhysicsHandleComponent* HandleComponent);
 bool SetTargetLocation(UPhysicsHandleComponent* component, float x, float y, float z);
 bool WakeRigidBody(UPrimitiveComponent* component);
 bool IgnoreCollisionWithPawn(UPrimitiveComponent* component);
+
+bool CaptureDepthAndMasks(UObject* _this, const IntSize* size, int stride, AActor* origin, bool verbose, const AActor** objects, int nObjects, const AActor** ignoredObjects, int nIgnoredObjects, void* depth_data, void* mask_data);
 ]]
 
 local utlib = ffi.C
@@ -463,16 +465,85 @@ function uetorch.DepthField(actor, ignored_objects, stride, verbose)
    end
 
    if not captured then
-      print("ERROR: Unable to capture segmentation")
+      print("ERROR: Unable to capture depth field")
       return nil
    end
 
-   -- if not utlib.CaptureDepthField(this, actor, size, depth:storage():cdata().data, stride, verbose) then
-   --    print("ERROR: Unable to capture depth field")
-   --    return nil
-   -- end
-
    return depth
+end
+
+
+-- Capture depth field and segmentation masks for a set of objects in the viewport.
+--
+-- Parameters:
+--     origin: the actor from which we will calculate the depth field
+--     active_objects: a list of ffi Actor* pointers, for which segmentation masks should
+--                     be recorded.
+--     ignored_objects: a list of ffi Actor* pointers which are ignored
+--                      by the ray tracing algorithm during segmentation.
+--     stride: stride in pixels at which to compute the masks. (Default: 1)
+--     verbose: verbose output (Default: false)
+--
+-- Returns:
+--     depth: A FloatTensor of size (Y/stride,X/stride) containing the 2D
+--            depth field at each point in the viewport.
+--
+--     mask: a IntTensor of size [Y/stride,X/stride].
+--           Each value corresponds to the index in the `objects` list of the foreground
+--           object at this viewport pixel, or 0 if there is no object from the list at
+--           that location in the viewport.
+--
+function uetorch.CaptureDepthAndMasks(origin, active_objects, ignored_objects, stride, verbose)
+   -- arguments check
+   assert(active_objects, "must specify objects for segmentation")
+   stride = stride or 1
+   verbose = verbose or false
+
+   -- retrieve the viewport size
+   local size = ffi.new('IntSize[?]', 1)
+   utlib.GetViewportSize(size)
+   if size[0].X == 0 or size[0].Y == 0 then
+      print("ERROR: Screen not visible")
+      return nil
+   end
+
+   -- allocate mask tensor
+   local mask = torch.IntTensor(
+      math.ceil(size[0].Y/stride),
+      math.ceil(size[0].X/stride))
+
+   -- allocate depth tensor
+   local depth = torch.FloatTensor(
+      math.ceil(size[0].Y/stride),
+      math.ceil(size[0].X/stride))
+
+   local objectArr = ffi.new(string.format("AActor*[%d]", #active_objects), active_objects)
+
+   local captured = false
+   if not ignored_objects or #ignored_objects == 0 then  -- no objects to ignore
+      if(verbose) then print('no object to ignore') end
+
+      captured = utlib.CaptureDepthAndMasks(
+         this, size, stride, origin, verbose,
+         objectArr, #active_objects, nil, 0,
+         depth:storage():cdata().data, mask:storage():cdata().data)
+   else
+      if(verbose) then print('ignoring ' .. #ignored_objects .. ' objects') end
+
+      local ignoredObjectArr = ffi.new(string.format("AActor*[%d]", #ignored_objects), ignored_objects)
+
+      captured = utlib.CaptureDepthAndMasks(
+         this, size, stride, origin, verbose,
+         objectArr, #active_objects, ignoredObjectArr, #ignored_objects,
+         depth:storage():cdata().data, mask:storage():cdata().data)
+   end
+
+   if not captured then
+      print("ERROR: Unable to capture depth and masks")
+      return nil
+   end
+
+   return depth, mask
 end
 
 -------------------------------------------------------------------------------
