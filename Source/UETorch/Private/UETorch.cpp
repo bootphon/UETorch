@@ -948,6 +948,89 @@ extern "C" bool SetMaterial(AActor* object, UMaterial* material) {
     return true;
 }
 
+
+extern "C" bool SetNotifyRigidBodyCollision(AActor* actor, bool bNewNotifyRigidBodyCollision) {
+    UStaticMeshComponent* component = GetActorMeshComponent(actor);
+    if(component == NULL) return false;
+    component->SetNotifyRigidBodyCollision(bNewNotifyRigidBodyCollision);
+    return true;
+}
+
+
+extern "C" bool GetMaterialPhysicalProperties(AActor* actor, float* props) {
+    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
+    if(! mesh) {
+        printf("Static Mesh doesn't exist\n");
+        return false;
+    }
+
+    FBodyInstance* body = mesh->GetBodyInstance();
+    if(! body) return false;
+
+    UPhysicalMaterial* physical = body->GetSimplePhysicalMaterial();
+    if(! physical) {
+        printf("Physical Material doesn't exist\n");
+        return false;
+    }
+
+    props[0] = physical->Friction;
+    props[1] = physical->Restitution;
+    props[2] = physical->Density;
+    return true;
+}
+
+
+extern "C" bool SetPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical) {
+    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
+    if(! mesh) return false;
+
+    FBodyInstance* body = mesh->GetBodyInstance();
+    if(! body) return false;
+
+    body->SetPhysMaterialOverride(physical);
+    body->UpdatePhysicalMaterials();
+    return true;
+}
+
+
+extern "C" bool GetMassScale(AActor* actor, float* scale) {
+    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
+    if(! mesh) return false;
+
+    FBodyInstance* body = mesh->GetBodyInstance();
+    if(! body) return false;
+
+    *scale = body->MassScale;
+    return true;
+}
+
+
+extern "C" bool SetMassScale(AActor* actor, float scale) {
+    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
+    if(! mesh) return false;
+
+    FBodyInstance* body = mesh->GetBodyInstance();
+    if(! body) return false;
+
+    // setup scale and trigger update
+    body->MassScale = scale;
+    body->UpdateMassProperties();
+    return true;
+}
+
+
+extern "C" bool GetMass(AActor* actor, float *mass) {
+    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
+    if(! mesh) return false;
+
+    FBodyInstance* body = mesh->GetBodyInstance();
+    if(! body) return false;
+
+    *mass = body->GetBodyMass();
+    return true;
+}
+
+
 extern "C" bool AddForce(AActor* object, float x, float y, float z) {
     UStaticMeshComponent* component = GetActorMeshComponent(object);
     if(component == NULL) return false;

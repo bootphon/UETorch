@@ -27,6 +27,7 @@ struct UObject;
 struct AActor;
 struct UPrimitiveComponent;
 struct UMaterial;
+struct UPhysicalMaterial;
 struct FName;
 struct UPhysicsHandleComponent;
 
@@ -62,7 +63,6 @@ bool SetActorScale3D(AActor* object, float x, float y, float z);
 
 bool DestroyActor(AActor* object);
 
-bool SetMaterial(AActor* object, UMaterial* material);
 bool AddForce(AActor* object, float x, float y, float z);
 
 bool SimpleMoveToLocation(UObject* _this, AActor* object, float x, float y, float z);
@@ -75,6 +75,14 @@ bool WakeRigidBody(UPrimitiveComponent* component);
 bool IgnoreCollisionWithPawn(UPrimitiveComponent* component);
 
 bool CaptureDepthAndMasks(UObject* _this, const IntSize* size, int stride, AActor* origin, bool verbose, const AActor** objects, int nObjects, const AActor** ignoredObjects, int nIgnoredObjects, void* depth_data, void* mask_data);
+
+bool SetMaterial(AActor* object, UMaterial* material);
+bool GetMaterialPhysicalProperties(AActor* actor, float* props);
+bool GetMassScale(AActor* actor, float* scale);
+bool SetMassScale(AActor* actor, float scale);
+bool GetMass(AActor* actor, float *mass);
+bool SetPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical);
+bool SetNotifyRigidBodyCollision(AActor* actor, bool bNewNotifyRigidBodyCollision);
 ]]
 
 local utlib = ffi.C
@@ -667,6 +675,7 @@ function uetorch.GetActorForwardVector(actor)
    return {x = x[0], y = y[0], z = z[0]}
 end
 
+
 uetorch.SetActorLocation = utlib.SetActorLocation
 uetorch.SetActorRotation = utlib.SetActorRotation
 uetorch.SetActorLocationAndRotation = utlib.SetActorLocationAndRotation
@@ -675,9 +684,6 @@ uetorch.SetActorVelocity = utlib.SetActorVelocity
 uetorch.SetActorAngularVelocity = utlib.SetActorAngularVelocity
 uetorch.SetActorScale3D = utlib.SetActorScale3D
 uetorch.DestroyActor = utlib.DestroyActor
-uetorch.SetMaterial = utlib.SetMaterial
-uetorch.AddForce = utlib.AddForce
-uetorch.SetResolution = utlib.SetResolution
 uetorch.SetMouse = utlib.SetMouse
 
 -------------------------------------------------------------------------------
@@ -723,5 +729,42 @@ function uetorch.ExecuteConsoleCommand(command)
    local char_command = ffi.new('char[' .. len .. ']', command)
    utlib.ExecuteConsoleCommand(this, char_command)
 end
+
+
+
+function uetorch.GetMaterialPhysicalProperties(actor)
+   local props = ffi.new('float[?]', 3)
+   if not utlib.GetMaterialPhysicalProperties(actor, props) then
+      return nil
+   end
+   return {friction = props[0], restitution = props[1], density = props[2]}
+end
+
+
+function uetorch.GetMassScale(actor)
+   local scale = ffi.new('float[?]', 1)
+   if not utlib.GetMassScale(actor, scale) then
+      return nil
+   end
+   return scale[0]
+end
+
+function uetorch.GetMass(actor)
+   local mass = ffi.new('float[?]', 1)
+   if not utlib.GetMass(actor, mass) then
+      return nil
+   end
+   return mass[0]
+end
+
+
+-- uetorch.SetFriction = utlib.SetFriction
+uetorch.SetPhysicalMaterial = utlib.SetPhysicalMaterial
+uetorch.SetMassScale = utlib.SetMassScale
+uetorch.SetMaterial = utlib.SetMaterial
+uetorch.AddForce = utlib.AddForce
+uetorch.SetResolution = utlib.SetResolution
+uetorch.SetNotifyRigidBodyCollision = utlib.SetNotifyRigidBodyCollision
+
 
 return uetorch
