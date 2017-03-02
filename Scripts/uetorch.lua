@@ -26,6 +26,7 @@ typedef struct {
 struct UObject;
 struct AActor;
 struct UPrimitiveComponent;
+struct UStaticMesh;
 struct UMaterial;
 struct UPhysicalMaterial;
 struct FName;
@@ -76,13 +77,16 @@ bool IgnoreCollisionWithPawn(UPrimitiveComponent* component);
 
 bool CaptureDepthAndMasks(UObject* _this, const IntSize* size, int stride, AActor* origin, bool verbose, const AActor** objects, int nObjects, const AActor** ignoredObjects, int nIgnoredObjects, void* depth_data, void* mask_data);
 
-bool SetMaterial(AActor* object, UMaterial* material);
-bool GetMaterialPhysicalProperties(AActor* actor, float* props);
-bool GetMassScale(AActor* actor, float* scale);
-bool SetMassScale(AActor* actor, float scale);
-bool GetMass(AActor* actor, float *mass);
-bool SetPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical);
-bool SetNotifyRigidBodyCollision(AActor* actor, bool bNewNotifyRigidBodyCollision);
+AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation);
+bool SetActorMaterial(AActor* object, UMaterial* material);
+bool GetActorPhysicalProperties(AActor* actor, float* props);
+bool GetActorMassScale(AActor* actor, float* scale);
+bool SetActorMassScale(AActor* actor, float scale);
+bool GetActorMass(AActor* actor, float *mass);
+bool SetActorPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical);
+bool SetActorGenerateHitEvents(AActor* actor, bool bGenerateHitEvents);
+bool SetActorGenerateOverlapEvents(AActor* actor, bool bGenerateOverlapEvents);
+bool SetActorSimulatePhysics(AActor* actor, bool bSimulatePhysics);
 ]]
 
 local utlib = ffi.C
@@ -619,7 +623,7 @@ function uetorch.GetActorVisible(actor)
    if not utlib.GetActorVisible(actor, visible) then
       return nil
    end
-   return visible[0]
+   return not visible[0]
 end
 
 function uetorch.GetActorVelocity(actor)
@@ -731,27 +735,46 @@ function uetorch.ExecuteConsoleCommand(command)
 end
 
 
+function uetorch.SpawnStaticMeshActor(mesh, location, rotation)
+   local l = ffi.new('float[?]', 3)
+   l[0] = location.x
+   l[1] = location.y
+   l[2] = location.z
 
-function uetorch.GetMaterialPhysicalProperties(actor)
+   local r = ffi.new('float[?]', 3)
+   r[0] = rotation.pitch
+   r[1] = rotation.yaw
+   r[2] = rotation.roll
+
+   local actor = utlib.SpawnStaticMeshActor(this, mesh, l, r)
+   if not actor then
+      return nil
+   else
+      return actor
+   end
+end
+
+
+function uetorch.GetActorlPhysicalProperties(actor)
    local props = ffi.new('float[?]', 3)
-   if not utlib.GetMaterialPhysicalProperties(actor, props) then
+   if not utlib.GetActorPhysicalProperties(actor, props) then
       return nil
    end
    return {friction = props[0], restitution = props[1], density = props[2]}
 end
 
 
-function uetorch.GetMassScale(actor)
+function uetorch.GetActorMassScale(actor)
    local scale = ffi.new('float[?]', 1)
-   if not utlib.GetMassScale(actor, scale) then
+   if not utlib.GetActorMassScale(actor, scale) then
       return nil
    end
    return scale[0]
 end
 
-function uetorch.GetMass(actor)
+function uetorch.GetActorMass(actor)
    local mass = ffi.new('float[?]', 1)
-   if not utlib.GetMass(actor, mass) then
+   if not utlib.GetActorMass(actor, mass) then
       return nil
    end
    return mass[0]
@@ -759,12 +782,13 @@ end
 
 
 -- uetorch.SetFriction = utlib.SetFriction
-uetorch.SetPhysicalMaterial = utlib.SetPhysicalMaterial
-uetorch.SetMassScale = utlib.SetMassScale
-uetorch.SetMaterial = utlib.SetMaterial
+uetorch.SetActorPhysicalMaterial = utlib.SetActorPhysicalMaterial
+uetorch.SetActorMassScale = utlib.SetActorMassScale
+uetorch.SetActorMaterial = utlib.SetActorMaterial
 uetorch.AddForce = utlib.AddForce
 uetorch.SetResolution = utlib.SetResolution
-uetorch.SetNotifyRigidBodyCollision = utlib.SetNotifyRigidBodyCollision
-
+uetorch.SetActorGenerateOverlapEvents = utlib.SetActorGenerateOverlapEvents
+uetorch.SetActorGenerateHitEvents = utlib.SetActorGenerateHitEvents
+uetorch.SetActorSimulatePhysics = utlib.SetActorSimulatePhysics
 
 return uetorch

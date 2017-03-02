@@ -937,34 +937,64 @@ extern "C" bool SetActorScale3D(AActor* object, float x, float y, float z) {
     return true;
 }
 
-extern "C" bool SetMaterial(AActor* object, UMaterial* material) {
-    UStaticMeshComponent* component = GetActorMeshComponent(object);
-    if(component == NULL) return false;
-    if(!material) {
-        printf("Material doesn't exist\n");
-        return false;
+
+extern "C" AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation) {
+    UWorld* World = GEngine->GetWorldFromContextObject(_this);
+    if(World == NULL) {
+        printf("World is null\n");
+        return NULL;
     }
+
+    AStaticMeshActor* actor = World->SpawnActor<AStaticMeshActor>(
+        FVector(location[0], location[1], location[2]),
+        FRotator(rotation[0], rotation[1], rotation[2]));
+
+    actor->GetStaticMeshComponent()->Mobility = EComponentMobility::Movable;
+    actor->GetStaticMeshComponent()->SetStaticMesh(mesh);
+
+    return actor;
+}
+
+
+extern "C" bool SetActorSimulatePhysics(AActor* actor, bool bSimulatePhysics) {
+    UStaticMeshComponent* component = GetActorMeshComponent(actor);
+    if(! component) return false;
+
+    component->SetSimulatePhysics(bSimulatePhysics);
+    if(bSimulatePhysics) component->WakeRigidBody();
+    return true;
+}
+
+extern "C" bool SetActorMaterial(AActor* actor, UMaterial* material) {
+    UStaticMeshComponent* component = GetActorMeshComponent(actor);
+    if(! component) return false;
+
     component->SetMaterial(0, material);
     return true;
 }
 
 
-extern "C" bool SetNotifyRigidBodyCollision(AActor* actor, bool bNewNotifyRigidBodyCollision) {
+extern "C" bool SetActorGenerateOverlapEvents(AActor* actor, bool bGenerateOverlapEvents) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
     if(component == NULL) return false;
-    component->SetNotifyRigidBodyCollision(bNewNotifyRigidBodyCollision);
+    component->bGenerateOverlapEvents = bGenerateOverlapEvents;
     return true;
 }
 
 
-extern "C" bool GetMaterialPhysicalProperties(AActor* actor, float* props) {
-    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
-    if(! mesh) {
-        printf("Static Mesh doesn't exist\n");
-        return false;
-    }
+extern "C" bool SetActorGenerateHitEvents(AActor* actor, bool bGenerateHitEvents) {
+    UStaticMeshComponent* component = GetActorMeshComponent(actor);
+    if(component == NULL) return false;
+    component->SetNotifyRigidBodyCollision(bGenerateHitEvents);
+    return true;
+}
 
-    FBodyInstance* body = mesh->GetBodyInstance();
+
+extern "C" bool GetActorPhysicalProperties(AActor* actor, float* props) {
+    UStaticMeshComponent* component = GetActorMeshComponent(actor);
+    if(! component) return false;
+
+    FBodyInstance* body = component->GetBodyInstance();
     if(! body) return false;
 
     UPhysicalMaterial* physical = body->GetSimplePhysicalMaterial();
@@ -980,11 +1010,11 @@ extern "C" bool GetMaterialPhysicalProperties(AActor* actor, float* props) {
 }
 
 
-extern "C" bool SetPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical) {
-    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
-    if(! mesh) return false;
+extern "C" bool SetActorPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical) {
+    UStaticMeshComponent* component = GetActorMeshComponent(actor);
+    if(! component) return false;
 
-    FBodyInstance* body = mesh->GetBodyInstance();
+    FBodyInstance* body = component->GetBodyInstance();
     if(! body) return false;
 
     body->SetPhysMaterialOverride(physical);
@@ -993,7 +1023,7 @@ extern "C" bool SetPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical) 
 }
 
 
-extern "C" bool GetMassScale(AActor* actor, float* scale) {
+extern "C" bool GetActorMassScale(AActor* actor, float* scale) {
     UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
     if(! mesh) return false;
 
@@ -1005,7 +1035,7 @@ extern "C" bool GetMassScale(AActor* actor, float* scale) {
 }
 
 
-extern "C" bool SetMassScale(AActor* actor, float scale) {
+extern "C" bool SetActorMassScale(AActor* actor, float scale) {
     UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
     if(! mesh) return false;
 
@@ -1019,7 +1049,7 @@ extern "C" bool SetMassScale(AActor* actor, float scale) {
 }
 
 
-extern "C" bool GetMass(AActor* actor, float *mass) {
+extern "C" bool GetActorMass(AActor* actor, float *mass) {
     UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
     if(! mesh) return false;
 
