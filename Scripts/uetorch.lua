@@ -62,7 +62,7 @@ bool SetActorVelocity(AActor* object, float x, float y, float z);
 bool SetActorAngularVelocity(AActor* object, float x, float y, float z);
 bool SetActorScale3D(AActor* object, float x, float y, float z);
 
-bool DestroyActor(AActor* object);
+bool DestroyActor(UObject* _this, AActor* object);
 
 bool AddForce(AActor* object, float x, float y, float z);
 
@@ -269,6 +269,7 @@ function uetorch.GetActor(name)
       return nil
    end
 end
+
 
 -- Capture a screenshot of the viewport
 --
@@ -687,7 +688,6 @@ uetorch.SetActorVisible = utlib.SetActorVisible
 uetorch.SetActorVelocity = utlib.SetActorVelocity
 uetorch.SetActorAngularVelocity = utlib.SetActorAngularVelocity
 uetorch.SetActorScale3D = utlib.SetActorScale3D
-uetorch.DestroyActor = utlib.DestroyActor
 uetorch.SetMouse = utlib.SetMouse
 
 -------------------------------------------------------------------------------
@@ -747,11 +747,17 @@ function uetorch.SpawnStaticMeshActor(mesh, location, rotation)
    r[2] = rotation.roll
 
    local actor = utlib.SpawnStaticMeshActor(this, mesh, l, r)
+   --print('spawning done')
    if not actor then
       return nil
    else
       return actor
    end
+end
+
+
+function uetorch.DestroyActor(actor)
+   return assert(utlib.DestroyActor(this, actor))
 end
 
 
@@ -781,7 +787,6 @@ function uetorch.GetActorMass(actor)
 end
 
 
--- uetorch.SetFriction = utlib.SetFriction
 uetorch.SetActorPhysicalMaterial = utlib.SetActorPhysicalMaterial
 uetorch.SetActorMassScale = utlib.SetActorMassScale
 uetorch.SetActorMaterial = utlib.SetActorMaterial

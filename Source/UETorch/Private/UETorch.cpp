@@ -940,19 +940,23 @@ extern "C" bool SetActorScale3D(AActor* object, float x, float y, float z) {
 
 extern "C" AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation) {
     UWorld* World = GEngine->GetWorldFromContextObject(_this);
-    if(World == NULL) {
+    if(! World) {
         printf("World is null\n");
         return NULL;
     }
 
-    AStaticMeshActor* actor = World->SpawnActor<AStaticMeshActor>(
+    AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
         FVector(location[0], location[1], location[2]),
         FRotator(rotation[0], rotation[1], rotation[2]));
+    if(! Actor) {
+        printf("ERROR: Cannot spawn actor\n");
+        return NULL;
+    }
 
-    actor->GetStaticMeshComponent()->Mobility = EComponentMobility::Movable;
-    actor->GetStaticMeshComponent()->SetStaticMesh(mesh);
+    Actor->GetStaticMeshComponent()->Mobility = EComponentMobility::Movable;
+    Actor->GetStaticMeshComponent()->SetStaticMesh(mesh);
 
-    return actor;
+    return Actor;
 }
 
 
@@ -964,6 +968,7 @@ extern "C" bool SetActorSimulatePhysics(AActor* actor, bool bSimulatePhysics) {
     if(bSimulatePhysics) component->WakeRigidBody();
     return true;
 }
+
 
 extern "C" bool SetActorMaterial(AActor* actor, UMaterial* material) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
@@ -1091,13 +1096,19 @@ extern "C" bool SetResolution(int x, int y) {
     return true;
 }
 
-extern "C" bool DestroyActor(AActor* object) {
+extern "C" bool DestroyActor(UObject* _this, AActor* object) {
     if(object == NULL) {
         printf("Object is null\n");
         return false;
     }
-    object->K2_DestroyActor();
-    return true;
+
+    UWorld* World = GEngine->GetWorldFromContextObject(_this);
+    if(World == NULL) {
+        printf("World is null\n");
+        return false;
+    }
+
+    return World->DestroyActor(object);
 }
 
 /**
