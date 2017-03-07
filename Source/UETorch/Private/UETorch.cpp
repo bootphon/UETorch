@@ -991,6 +991,29 @@ extern "C" bool SetActorMaterial(AActor* actor, UMaterial* material) {
 }
 
 
+extern "C" bool SetActorStaticMesh(AActor* actor, UStaticMesh* mesh) {
+    if(! mesh){
+        printf("Mesh is null\n");
+        return false;
+    }
+
+    if(! actor) {
+        printf("Actor is null\n");
+        return false;
+    }
+
+    AStaticMeshActor* static_mesh_actor = (AStaticMeshActor*)actor;
+    UStaticMeshComponent* component = static_mesh_actor->GetStaticMeshComponent();
+    if(! component) {
+        printf("Mesh component is null\n");
+        return false;
+    }
+
+    component->SetStaticMesh(mesh);
+    return true;
+}
+
+
 extern "C" bool SetActorGenerateOverlapEvents(AActor* actor, bool bGenerateOverlapEvents) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
     if(component == NULL) return false;

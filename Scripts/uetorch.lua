@@ -79,6 +79,7 @@ bool CaptureDepthAndMasks(UObject* _this, const IntSize* size, int stride, AActo
 
 AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation);
 bool SetActorMaterial(AActor* object, UMaterial* material);
+bool SetActorStaticMesh(AActor* object, UStaticMesh* mesh);
 bool GetActorPhysicalProperties(AActor* actor, float* props);
 bool GetActorMassScale(AActor* actor, float* scale);
 bool SetActorMassScale(AActor* actor, float scale);
@@ -681,7 +682,11 @@ function uetorch.GetActorForwardVector(actor)
 end
 
 
-uetorch.SetActorLocation = utlib.SetActorLocation
+--uetorch.SetActorLocation = utlib.SetActorLocation
+function uetorch.SetActorLocation(actor, x, y, z)
+   return utlib.SetActorLocation(actor, x, y, z)
+end
+
 uetorch.SetActorRotation = utlib.SetActorRotation
 uetorch.SetActorLocationAndRotation = utlib.SetActorLocationAndRotation
 uetorch.SetActorVisible = utlib.SetActorVisible
@@ -789,6 +794,7 @@ end
 uetorch.SetActorPhysicalMaterial = utlib.SetActorPhysicalMaterial
 uetorch.SetActorMassScale = utlib.SetActorMassScale
 uetorch.SetActorMaterial = utlib.SetActorMaterial
+uetorch.SetActorStaticMesh = utlib.SetActorStaticMesh
 uetorch.AddForce = utlib.AddForce
 uetorch.SetResolution = utlib.SetResolution
 uetorch.SetActorGenerateOverlapEvents = utlib.SetActorGenerateOverlapEvents
