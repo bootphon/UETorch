@@ -747,7 +747,6 @@ function uetorch.SpawnStaticMeshActor(mesh, location, rotation)
    r[2] = rotation.roll
 
    local actor = utlib.SpawnStaticMeshActor(this, mesh, l, r)
-   --print('spawning done')
    if not actor then
       return nil
    else

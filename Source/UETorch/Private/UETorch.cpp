@@ -938,7 +938,12 @@ extern "C" bool SetActorScale3D(AActor* object, float x, float y, float z) {
 }
 
 
-extern "C" AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation) {
+extern "C" AStaticMeshActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation) {
+    if(! mesh){
+        printf("Mesh is null\n");
+        return NULL;
+    }
+
     UWorld* World = GEngine->GetWorldFromContextObject(_this);
     if(! World) {
         printf("World is null\n");
@@ -948,13 +953,20 @@ extern "C" AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float
     AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
         FVector(location[0], location[1], location[2]),
         FRotator(rotation[0], rotation[1], rotation[2]));
+
     if(! Actor) {
         printf("ERROR: Cannot spawn actor\n");
         return NULL;
     }
 
-    Actor->GetStaticMeshComponent()->Mobility = EComponentMobility::Movable;
-    Actor->GetStaticMeshComponent()->SetStaticMesh(mesh);
+    UStaticMeshComponent* Component = Actor->GetStaticMeshComponent();
+    if(! Component) {
+        printf("Mesh component is null\n");
+        return NULL;
+    }
+
+    Component->Mobility = EComponentMobility::Movable;
+    Component->SetStaticMesh(mesh);
 
     return Actor;
 }
