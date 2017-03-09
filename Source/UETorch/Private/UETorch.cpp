@@ -810,6 +810,9 @@ extern "C" bool GetActorVelocity(AActor* object, float* x, float* y, float* z) {
     UStaticMeshComponent* component = GetActorMeshComponent(object);
     if(component == NULL) return false;
     FVector actorLinVel = component->GetPhysicsLinearVelocity();
+    *x = actorLinVel.X;
+    *y = actorLinVel.Y;
+    *z = actorLinVel.Z;
     return true;
 }
 
@@ -1002,14 +1005,28 @@ extern "C" bool SetActorStaticMesh(AActor* actor, UStaticMesh* mesh) {
         return false;
     }
 
-    AStaticMeshActor* static_mesh_actor = (AStaticMeshActor*)actor;
+
+    AStaticMeshActor* static_mesh_actor = Cast<AStaticMeshActor>(actor);
+    if(! static_mesh_actor) {
+        printf("Cannot cast to StaticMeshActor\n");
+        return false;
+    }
+
     UStaticMeshComponent* component = static_mesh_actor->GetStaticMeshComponent();
     if(! component) {
         printf("Mesh component is null\n");
         return false;
     }
 
+    // we need to forward the velocity across the mesh components
+    FVector LinearVelocity = component->GetPhysicsLinearVelocity();
+    FVector AngularVelocity = component->GetPhysicsAngularVelocity();
+
     component->SetStaticMesh(mesh);
+
+    component->SetPhysicsLinearVelocity(LinearVelocity);
+    component->SetPhysicsAngularVelocity(AngularVelocity);
+
     return true;
 }
 
