@@ -974,6 +974,42 @@ extern "C" AStaticMeshActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* m
     return Actor;
 }
 
+// extern "C" AStaticMeshActor* SpawnActor(UObject* _this, UClass* Class, float* location, float* rotation) {
+//     UWorld* World = GEngine->GetWorldFromContextObject(_this);
+//     if(! World) {
+//         printf("World is null\n");
+//         return NULL;
+//     }
+
+//     AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
+//         Class,
+//         FVector(location[0], location[1], location[2]),
+//         FRotator(rotation[0], rotation[1], rotation[2]));
+
+//     if(! Actor) {
+//         printf("ERROR: Cannot spawn actor\n");
+//         return NULL;
+//     }
+
+//     return Actor;
+// }
+
+
+extern "C" bool DestroyActor(UObject* _this, AActor* object) {
+    if(object == NULL) {
+        printf("Object is null\n");
+        return false;
+    }
+
+    UWorld* World = GEngine->GetWorldFromContextObject(_this);
+    if(World == NULL) {
+        printf("World is null\n");
+        return false;
+    }
+
+    return World->DestroyActor(object);
+}
+
 
 extern "C" bool SetActorSimulatePhysics(AActor* actor, bool bSimulatePhysics) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
@@ -1038,6 +1074,35 @@ extern "C" bool SetActorGenerateOverlapEvents(AActor* actor, bool bGenerateOverl
     return true;
 }
 
+
+// void private_OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+// {
+//     printf("Overlap event detected!!!\n");
+// }
+
+
+// extern "C" bool OnOverlapBegin(AActor* actor, char* lua_global_function)
+// {
+//     if(! actor) {
+//         printf("Actor is null\n");
+//         return false;
+//     }
+
+
+//     AStaticMeshActor* static_mesh_actor = Cast<AStaticMeshActor>(actor);
+//     if(! static_mesh_actor) {
+//         printf("Cannot cast to StaticMeshActor\n");
+//         return false;
+//     }
+
+//     UStaticMeshComponent* component = static_mesh_actor->GetStaticMeshComponent();
+//     if(! component) {
+//         printf("Mesh component is null\n");
+//         return false;
+//     }
+
+//     component->OnComponentBeginOverlap.AddDynamic(actor, &private_OnOverlapBegin);
+// }
 
 extern "C" bool SetActorGenerateHitEvents(AActor* actor, bool bGenerateHitEvents) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
@@ -1134,6 +1199,7 @@ extern "C" bool AddForce(AActor* object, float x, float y, float z) {
     return true;
 }
 
+
 // implemented from https://wiki.unrealengine.com/Game_User_Settings
 extern "C" bool SetResolution(int x, int y) {
     if(! GEngine)
@@ -1148,20 +1214,6 @@ extern "C" bool SetResolution(int x, int y) {
     return true;
 }
 
-extern "C" bool DestroyActor(UObject* _this, AActor* object) {
-    if(object == NULL) {
-        printf("Object is null\n");
-        return false;
-    }
-
-    UWorld* World = GEngine->GetWorldFromContextObject(_this);
-    if(World == NULL) {
-        printf("World is null\n");
-        return false;
-    }
-
-    return World->DestroyActor(object);
-}
 
 /**
  * Functions to control pawns
