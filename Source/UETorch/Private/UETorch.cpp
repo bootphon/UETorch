@@ -940,61 +940,6 @@ extern "C" bool SetActorScale3D(AActor* object, float x, float y, float z) {
     return true;
 }
 
-
-extern "C" AStaticMeshActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation) {
-    if(! mesh){
-        printf("Mesh is null\n");
-        return NULL;
-    }
-
-    UWorld* World = GEngine->GetWorldFromContextObject(_this);
-    if(! World) {
-        printf("World is null\n");
-        return NULL;
-    }
-
-    AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
-        FVector(location[0], location[1], location[2]),
-        FRotator(rotation[0], rotation[1], rotation[2]));
-
-    if(! Actor) {
-        printf("ERROR: Cannot spawn actor\n");
-        return NULL;
-    }
-
-    UStaticMeshComponent* Component = Actor->GetStaticMeshComponent();
-    if(! Component) {
-        printf("Mesh component is null\n");
-        return NULL;
-    }
-
-    Component->Mobility = EComponentMobility::Movable;
-    Component->SetStaticMesh(mesh);
-
-    return Actor;
-}
-
-// extern "C" AStaticMeshActor* SpawnActor(UObject* _this, UClass* Class, float* location, float* rotation) {
-//     UWorld* World = GEngine->GetWorldFromContextObject(_this);
-//     if(! World) {
-//         printf("World is null\n");
-//         return NULL;
-//     }
-
-//     AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
-//         Class,
-//         FVector(location[0], location[1], location[2]),
-//         FRotator(rotation[0], rotation[1], rotation[2]));
-
-//     if(! Actor) {
-//         printf("ERROR: Cannot spawn actor\n");
-//         return NULL;
-//     }
-
-//     return Actor;
-// }
-
-
 extern "C" bool DestroyActor(UObject* _this, AActor* object) {
     if(object == NULL) {
         printf("Object is null\n");
@@ -1074,43 +1019,12 @@ extern "C" bool SetActorGenerateOverlapEvents(AActor* actor, bool bGenerateOverl
     return true;
 }
 
-
-// void private_OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-// {
-//     printf("Overlap event detected!!!\n");
-// }
-
-
-// extern "C" bool OnOverlapBegin(AActor* actor, char* lua_global_function)
-// {
-//     if(! actor) {
-//         printf("Actor is null\n");
-//         return false;
-//     }
-
-
-//     AStaticMeshActor* static_mesh_actor = Cast<AStaticMeshActor>(actor);
-//     if(! static_mesh_actor) {
-//         printf("Cannot cast to StaticMeshActor\n");
-//         return false;
-//     }
-
-//     UStaticMeshComponent* component = static_mesh_actor->GetStaticMeshComponent();
-//     if(! component) {
-//         printf("Mesh component is null\n");
-//         return false;
-//     }
-
-//     component->OnComponentBeginOverlap.AddDynamic(actor, &private_OnOverlapBegin);
-// }
-
 extern "C" bool SetActorGenerateHitEvents(AActor* actor, bool bGenerateHitEvents) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
     if(component == NULL) return false;
     component->SetNotifyRigidBodyCollision(bGenerateHitEvents);
     return true;
 }
-
 
 extern "C" bool GetActorPhysicalProperties(AActor* actor, float* props) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
@@ -1131,7 +1045,6 @@ extern "C" bool GetActorPhysicalProperties(AActor* actor, float* props) {
     return true;
 }
 
-
 extern "C" bool SetActorPhysicalMaterial(AActor* actor, UPhysicalMaterial* physical) {
     UStaticMeshComponent* component = GetActorMeshComponent(actor);
     if(! component) return false;
@@ -1144,7 +1057,6 @@ extern "C" bool SetActorPhysicalMaterial(AActor* actor, UPhysicalMaterial* physi
     return true;
 }
 
-
 extern "C" bool GetActorMassScale(AActor* actor, float* scale) {
     UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
     if(! mesh) return false;
@@ -1155,7 +1067,6 @@ extern "C" bool GetActorMassScale(AActor* actor, float* scale) {
     *scale = body->MassScale;
     return true;
 }
-
 
 extern "C" bool SetActorMassScale(AActor* actor, float scale) {
     UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
@@ -1170,7 +1081,6 @@ extern "C" bool SetActorMassScale(AActor* actor, float scale) {
     return true;
 }
 
-
 extern "C" bool GetActorMass(AActor* actor, float *mass) {
     UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
     if(! mesh) return false;
@@ -1181,7 +1091,6 @@ extern "C" bool GetActorMass(AActor* actor, float *mass) {
     *mass = body->GetBodyMass();
     return true;
 }
-
 
 extern "C" bool AddForce(AActor* object, float x, float y, float z) {
     UStaticMeshComponent* component = GetActorMeshComponent(object);
@@ -1198,7 +1107,6 @@ extern "C" bool AddForce(AActor* object, float x, float y, float z) {
     component->AddForce(FVector(x,y,z));
     return true;
 }
-
 
 // implemented from https://wiki.unrealengine.com/Game_User_Settings
 extern "C" bool SetResolution(int x, int y) {

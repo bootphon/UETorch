@@ -78,8 +78,6 @@ bool IgnoreCollisionWithPawn(UPrimitiveComponent* component);
 
 bool CaptureDepthAndMasks(UObject* _this, const IntSize* size, int stride, AActor* origin, bool verbose, const AActor** objects, int nObjects, const AActor** ignoredObjects, int nIgnoredObjects, void* depth_data, void* mask_data);
 
-AActor* SpawnStaticMeshActor(UObject* _this, UStaticMesh* mesh, float* location, float* rotation);
-AActor* SpawnActor(UObject* _this, UClass* Class, float* location, float* rotation);
 bool SetActorMaterial(AActor* object, UMaterial* material);
 bool SetActorStaticMesh(AActor* object, UStaticMesh* mesh);
 bool GetActorPhysicalProperties(AActor* actor, float* props);
@@ -739,45 +737,6 @@ function uetorch.ExecuteConsoleCommand(command)
    local len = #command + 1
    local char_command = ffi.new('char[' .. len .. ']', command)
    utlib.ExecuteConsoleCommand(this, char_command)
-end
-
-
-function uetorch.SpawnStaticMeshActor(mesh, location, rotation)
-   local l = ffi.new('float[?]', 3)
-   l[0] = location.x
-   l[1] = location.y
-   l[2] = location.z
-
-   local r = ffi.new('float[?]', 3)
-   r[0] = rotation.pitch
-   r[1] = rotation.yaw
-   r[2] = rotation.roll
-
-   local actor = utlib.SpawnStaticMeshActor(this, mesh, l, r)
-   if not actor then
-      return nil
-   else
-      return actor
-   end
-end
-
-function uetorch.SpawnActor(class, location, rotation)
-   local l = ffi.new('float[?]', 3)
-   l[0] = location.x
-   l[1] = location.y
-   l[2] = location.z
-
-   local r = ffi.new('float[?]', 3)
-   r[0] = rotation.pitch
-   r[1] = rotation.yaw
-   r[2] = rotation.roll
-
-   local actor = utlib.SpawnActor(this, class, l, r)
-   if not actor then
-      return nil
-   else
-      return actor
-   end
 end
 
 
