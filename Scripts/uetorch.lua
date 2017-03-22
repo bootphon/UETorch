@@ -65,7 +65,7 @@ bool SetActorScale3D(AActor* object, float x, float y, float z);
 
 bool DestroyActor(UObject* _this, AActor* object);
 
-bool AddForce(AActor* object, float x, float y, float z);
+bool AddForce(AActor* object, float x, float y, float z, bool bAccelForce);
 
 bool SimpleMoveToLocation(UObject* _this, AActor* object, float x, float y, float z);
 bool SimpleMoveToActor(UObject* _this, AActor* object, AActor* goal);
@@ -771,11 +771,15 @@ function uetorch.GetActorMass(actor)
 end
 
 
+function uetorch.AddForce(actor, x, y, z, bAccelChange)
+   bAccelChange = bAccelChange or false
+   return utlib.AddForce(actor, x, y, z, bAccelChange)
+end
+
 uetorch.SetActorPhysicalMaterial = utlib.SetActorPhysicalMaterial
 uetorch.SetActorMassScale = utlib.SetActorMassScale
 uetorch.SetActorMaterial = utlib.SetActorMaterial
 uetorch.SetActorStaticMesh = utlib.SetActorStaticMesh
-uetorch.AddForce = utlib.AddForce
 uetorch.SetResolution = utlib.SetResolution
 uetorch.SetActorGenerateOverlapEvents = utlib.SetActorGenerateOverlapEvents
 uetorch.SetActorGenerateHitEvents = utlib.SetActorGenerateHitEvents

@@ -1092,7 +1092,7 @@ extern "C" bool GetActorMass(AActor* actor, float *mass) {
     return true;
 }
 
-extern "C" bool AddForce(AActor* object, float x, float y, float z) {
+extern "C" bool AddForce(AActor* object, float x, float y, float z, bool bAccelChange) {
     UStaticMeshComponent* component = GetActorMeshComponent(object);
     if(component == NULL) return false;
     FBodyInstance* BodyInst = GetBodyInstance(object);
@@ -1104,7 +1104,7 @@ extern "C" bool AddForce(AActor* object, float x, float y, float z) {
         printf("Simulate physics isn't enabled\n");
         return false;
     }
-    component->AddForce(FVector(x,y,z));
+    component->AddForce(FVector(x,y,z), NAME_None, bAccelChange);
     return true;
 }
 
