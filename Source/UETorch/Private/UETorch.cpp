@@ -1092,6 +1092,20 @@ extern "C" bool GetActorMass(AActor* actor, float *mass) {
     return true;
 }
 
+
+extern "C" bool SetActorMass(AActor* actor, float mass) {
+    UStaticMeshComponent* mesh = GetActorMeshComponent(actor);
+    if(! mesh) return false;
+
+    FBodyInstance* body = mesh->GetBodyInstance();
+    if(! body) return false;
+
+    body->MassScale = body->MassScale * mass / body->GetBodyMass();
+    body->UpdateMassProperties();
+    return true;
+}
+
+
 extern "C" bool AddForce(AActor* object, float x, float y, float z, bool bAccelChange) {
     UStaticMeshComponent* component = GetActorMeshComponent(object);
     if(component == NULL) return false;
